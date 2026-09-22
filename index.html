@@ -1,0 +1,1716 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rydo – Alpine Passes & Adventure Routes | Moto, Bike & Camper</title>
+<meta name="description" content="Rydo – Die weltweite Abenteuer- & Pässe-Datenbank für Motorrad, Bikepacking und Wohnmobil. 100+ kuratierte Routen, 53 Hochgebirgspässe, Reiseplaner & GPX-Tracks.">
+<meta name="keywords" content="Rydo, Alpenpässe, Motorradreisen, Bikepacking, Wohnmobil, Vanlife, Overlanding, Trans Euro Trail, GPX, Kurviger, Wildcamping, TET">
+<meta name="author" content="Rydo">
+<meta name="theme-color" content="#10b981">
+<link rel="icon" type="image/jpeg" href="assets/logo.jpg">
+<link rel="apple-touch-icon" href="assets/logo.jpg">
+<link rel="manifest" href="manifest.json">
+<meta property="og:title" content="Rydo – Alpine Passes & Adventure Routes">
+<meta property="og:description" content="Kuratierte Pässe, Rundreisen & weltweiter Reiseplaner für Motorrad, Bikepacking und Campervan. 315 Pässe, 159 Touren, GPX & 100% offline-fähig.">
+<meta property="og:image" content="assets/logo.jpg">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Rydo – Alpine Passes & Adventure Routes">
+<meta name="twitter:description" content="315 Gebirgspässe, 159 kuratierte Touren & 100% offline-fähige PWA für Biker & Camper.">
+<meta name="twitter:image" content="assets/logo.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="preload" href="js/data.js" as="script">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Rydo",
+  "alternateName": "Rydo Adventure",
+  "description": "Die weltweite Abenteuer- & Pässe-Datenbank für Motorrad, Bikepacking und Wohnmobil mit 315 Pässen, 159 Routen, GPX & Offline-App.",
+  "inLanguage": "de-DE"
+}
+</script>
+</head>
+<body>
+
+
+
+<header>
+  <div class="logo" onclick="showView('start')" title="Zur Startseite">
+    <div class="brand-logo-badge" aria-hidden="true">
+      <img src="assets/logo.jpg" alt="Rydo Logo" class="brand-logo-img">
+    </div>
+    <div class="brand-text-wrap">
+      <h1 class="brand-title" data-i18n="appTitle">Rydo</h1>
+      <p class="brand-tagline" data-i18n="appSub">Passes &middot; Routes &middot; Adventure</p>
+    </div>
+  </div>
+  
+      <div class="header-controls">
+    <button class="offline-badge" onclick="openPwaInfoModal()" title="Offline-Nutzung & App-Installation als PWA" aria-label="Offline-Status">
+      <span class="status-dot"></span>
+      <span data-i18n="offlineReady">📲 App installieren (Offline)</span>
+    </button>
+    <button class="ctrl-btn fav-badge-btn" onclick="openFavoritesModal()" title="Meine gemerkten Favoriten anzeigen" aria-label="Favoriten">
+      <span class="fav-icon">⭐</span>
+      <span class="fav-label">Favoriten</span>
+      <span id="headerFavCount" class="fav-counter-badge">0</span>
+    </button>
+    <div class="searchbox" role="search" aria-label="Suche">
+      <input type="text" id="searchInput" placeholder="Suche Land, Route, Problem…" oninput="doSearch()" aria-label="Suche">
+      <button onclick="doSearch()" aria-label="Suchen">🔍</button>
+    </div>
+    <button id="langToggleBtn" class="ctrl-btn secondary" onclick="toggleLang()" title="Sprache wechseln / Switch Language" aria-label="Sprache wechseln">🌐 DE</button>
+    <button class="ctrl-btn secondary" onclick="toggleTheme()" aria-label="Dark/Light Mode umschalten" title="Dark/Light Mode umschalten">🌓</button>
+  </div>
+  <div id="searchFeedback" class="hint" style="display:none; padding:.4rem 2rem; background:var(--bg2); border-bottom:1px solid var(--border); width:100%"></div>
+</header>
+
+<!-- Hauptnavigation: 4 strukturierte Hubs mit Mega-Dropdown-Menüs (Komoot / Stripe Style) -->
+<nav id="mainnav" class="sticky-nav">
+  <div class="nav-container">
+    <div class="nav-items-group">
+      <!-- 1. Start Direct Link -->
+      <button data-view="start" class="nav-btn-direct active" onclick="showView('start')">
+        <span class="nav-icon">🏠</span> <span data-i18n="navStart">Start</span>
+      </button>
+
+      <!-- 2. Entdecken Dropdown -->
+      <div class="nav-dropdown" id="navDropdownEntdecken">
+        <button class="nav-dropdown-trigger" onclick="toggleNavDropdown('navDropdownEntdecken', event)" aria-expanded="false" aria-haspopup="true">
+          <span class="nav-icon">🧭</span>
+          <span data-i18n="navDiscover">Entdecken</span>
+          <span class="nav-chevron">▾</span>
+        </button>
+        <div class="nav-dropdown-menu">
+          <div class="nav-dropdown-header">Touren, Pässe &amp; Regionen</div>
+          <button class="nav-dropdown-item" data-view="paesse" onclick="selectNavView('paesse')">
+            <span class="item-icon">🏔️</span>
+            <div class="item-text">
+              <span class="item-title" data-i18n="navPasses">315 Gebirgspässe</span>
+              <span class="item-sub">Höhenprofile, Kehren, Steigung &amp; Straßenbelag</span>
+            </div>
+          </button>
+          <button class="nav-dropdown-item" data-view="routen" onclick="selectNavView('routen')">
+            <span class="item-icon">🛣️</span>
+            <div class="item-text">
+              <span class="item-title" data-i18n="navRoutes">159 Kuratierte Routen</span>
+              <span class="item-sub">GPX-Tracks für Motorrad, Camper &amp; Bikepacking</span>
+            </div>
+          </button>
+          <button class="nav-dropdown-item" data-view="karte" onclick="selectNavView('karte')">
+            <span class="item-icon">🗺️</span>
+            <div class="item-text">
+              <span class="item-title" data-i18n="navMap">Interaktive Karte</span>
+              <span class="item-sub">OSRM-Kurvenstrecken &amp; 1-Klick-Kurviger-Planung</span>
+            </div>
+          </button>
+          <button class="nav-dropdown-item" data-view="laender" onclick="selectNavView('laender')">
+            <span class="item-icon">🌍</span>
+            <div class="item-text">
+              <span class="item-title" data-i18n="navCountryDb">Länder-Dossiers</span>
+              <span class="item-sub">47 Länder mit Maut, Carnet, Grüne Karte &amp; Gesetzen</span>
+            </div>
+          </button>
+          <button class="nav-dropdown-item" data-view="kalender" onclick="selectNavView('kalender')">
+            <span class="item-icon">📅</span>
+            <div class="item-text">
+              <span class="item-title" data-i18n="navCalendar">Reisekalender</span>
+              <span class="item-sub">Beste Reisezeit &amp; monatliche Pass-Öffnungen</span>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- 3. Planen Dropdown -->
+      <div class="nav-dropdown" id="navDropdownPlanen">
+        <button class="nav-dropdown-trigger" onclick="toggleNavDropdown('navDropdownPlanen', event)" aria-expanded="false" aria-haspopup="true">
+          <span class="nav-icon">🛠️</span>
+          <span data-i18n="navPlanner">Planen</span>
+          <span class="nav-chevron">▾</span>
+        </button>
+        <div class="nav-dropdown-menu">
+          <div class="nav-dropdown-header">Reise-Tools &amp; Planer</div>
+          <button class="nav-dropdown-item highlight" data-view="finder" onclick="selectNavView('finder')">
+            <span class="item-icon">✨</span>
+            <div class="item-text">
+              <span class="item-title">360°-Rundreise-Finder</span>
+              <span class="item-sub">Maßgeschneiderte Rundtouren ab deiner Haustür</span>
+            </div>
+          </button>
+          <button class="nav-dropdown-item" data-view="meine-reisen" onclick="selectNavView('meine-reisen')">
+            <span class="item-icon">🧭</span>
+            <div class="item-text">
+              <span class="item-title" data-i18n="navMyTrips">Meine Reisen &amp; Etappen</span>
+              <span class="item-sub">Persönlicher Reiseplaner mit GPX-Kombination</span>
+            </div>
+          </button>
+          <button class="nav-dropdown-item" data-view="tools" onclick="selectNavView('tools')">
+            <span class="item-icon">🎒</span>
+            <div class="item-text">
+              <span class="item-title">Biker-Tools &amp; Packlisten</span>
+              <span class="item-sub">Interaktive Checkliste &amp; Sprit-/Kostenrechner</span>
+            </div>
+          </button>
+          <button class="nav-dropdown-item" data-view="wohnmobil" onclick="selectNavView('wohnmobil')">
+            <span class="item-icon">🚐</span>
+            <div class="item-text">
+              <span class="item-title" data-i18n="navCamper">Wohnmobil- &amp; Vanlife-Hub</span>
+              <span class="item-sub">Camping-Ampel, Stellplätze &amp; Fahrzeuglimits</span>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- 4. Ratgeber & Wissen Dropdown -->
+      <div class="nav-dropdown" id="navDropdownWissen">
+        <button class="nav-dropdown-trigger" onclick="toggleNavDropdown('navDropdownWissen', event)" aria-expanded="false" aria-haspopup="true">
+          <span class="nav-icon">💡</span>
+          <span data-i18n="navPrep">Ratgeber</span>
+          <span class="nav-chevron">▾</span>
+        </button>
+        <div class="nav-dropdown-menu">
+          <div class="nav-dropdown-header">Praxis-Tipps, Sicherheit &amp; Notfall</div>
+          <button class="nav-dropdown-item" data-view="vorbereitung" onclick="selectNavView('vorbereitung')">
+            <span class="item-icon">🦺</span>
+            <div class="item-text">
+              <span class="item-title">Checklisten &amp; Dokumente</span>
+              <span class="item-sub">Einreise, Grüne Karte, Carnet &amp; Notfall-Docs</span>
+            </div>
+          </button>
+          <button class="nav-dropdown-item" data-view="probleme" onclick="selectNavView('probleme')">
+            <span class="item-icon">⚠️</span>
+            <div class="item-text">
+              <span class="item-title" data-i18n="navLessons">Pannen &amp; Notfall-Lektionen</span>
+              <span class="item-sub">41 echte Erfahrungsberichte &amp; Learnings weltweit</span>
+            </div>
+          </button>
+          <button class="nav-dropdown-item" data-view="quellen" onclick="selectNavView('quellen')">
+            <span class="item-icon">📚</span>
+            <div class="item-text">
+              <span class="item-title" data-i18n="navSources">Quellen &amp; Transparenz</span>
+              <span class="item-sub">Reiseblogs, Community-Foren &amp; Datenpartner</span>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Hamburger Toggle -->
+    <button class="nav-mobile-toggle" id="navMobileToggle" onclick="toggleMobileNav()" aria-label="Navigation öffnen" aria-expanded="false">
+      <span class="hamburger-bar"></span>
+      <span class="hamburger-bar"></span>
+      <span class="hamburger-bar"></span>
+    </button>
+  </div>
+</nav>
+
+<main>
+
+<!-- ============ START ============ -->
+<section id="view-start" class="view active">
+  <div class="hero">
+    <div class="hero-inner">
+      <div class="hero-content">
+        <div class="hero-pill-badge">✨ Das weltweite Abenteuer-Portal für Biker &amp; Camper</div>
+        <h2 data-i18n="heroTitle">Dein nächstes Abenteuer beginnt hier.</h2>
+        <p data-i18n="heroSub">315 Gebirgspässe, 159 kuratierte Rundreisen &amp; verlässliche GPX-Tracks für Motorrad, Camper und Bikepacking. 100% werbefrei und komplett offline-fähig.</p>
+        <div class="hero-actions">
+          <button class="hero-btn hero-btn-primary" onclick="startDemoTour()">🚀 Starte Demo-Tour</button>
+          <button class="hero-btn hero-btn-secondary" onclick="showView('karte')">🗺️ Karte öffnen</button>
+          <button class="hero-btn install-cta-btn" onclick="openPwaInfoModal()">📲 App installieren</button>
+        </div>
+
+        <!-- Floating Quick-Finder Bar -->
+        <div class="hero-quick-bar">
+          <div class="hq-field">
+            <label for="hqVehicle">Fahrzeug</label>
+            <select id="hqVehicle">
+              <option value="motorrad">🏍️ Motorrad</option>
+              <option value="wohnmobil">🚐 Camper / Van</option>
+              <option value="bikepacking">🚵 Bikepacking</option>
+            </select>
+          </div>
+          <div class="hq-divider"></div>
+          <div class="hq-field">
+            <label for="hqRegion">Region</label>
+            <select id="hqRegion">
+              <option value="alpen">🏔️ Alpen &amp; Dolomiten</option>
+              <option value="pyrenaeen">🌄 Pyrenäen</option>
+              <option value="skandinavien">🌲 Skandinavien</option>
+              <option value="weltweit">🌍 Alle Regionen</option>
+            </select>
+          </div>
+          <div class="hq-divider"></div>
+          <div class="hq-field">
+            <label for="hqDuration">Zeitbudget</label>
+            <select id="hqDuration">
+              <option value="weekend">⚡ Wochenende (1–3 Tage)</option>
+              <option value="week">📅 1 Woche (4–7 Tage)</option>
+              <option value="long">🗺️ 2+ Wochen Expedition</option>
+            </select>
+          </div>
+          <button class="hq-btn" onclick="applyQuickFinder()">
+            <span>Touren finden</span> ➔
+          </button>
+        </div>
+      </div>
+      <div class="hero-badge-container">
+        <img src="assets/logo.jpg" alt="Rydo Adventure Emblem" class="hero-emblem-img">
+      </div>
+    </div>
+    <div class="stats" id="statBox"></div>
+  </div>
+
+  <!-- Digitales Gipfelbuch Banner -->
+  <div id="startGipfelbuchBanner"></div>
+
+  <!-- Trust & Value Strip -->
+  <div class="trust-bar">
+    <div class="trust-item">
+      <span class="trust-icon">📱</span>
+      <div class="trust-text">
+        <strong>100% Offline-fähig</strong>
+        <span>Läuft in Funklöchern direkt als PWA-App</span>
+      </div>
+    </div>
+    <div class="trust-item">
+      <span class="trust-icon">🏔️</span>
+      <div class="trust-text">
+        <strong>315 Gebirgspässe</strong>
+        <span>Mit Höhenprofilen, Kehren &amp; Straßenbelag</span>
+      </div>
+    </div>
+    <div class="trust-item">
+      <span class="trust-icon">🧭</span>
+      <div class="trust-text">
+        <strong>Kurviger- &amp; GPX-Export</strong>
+        <span>1-Klick-Übertragung direkt auf dein Navi</span>
+      </div>
+    </div>
+    <div class="trust-item">
+      <span class="trust-icon">🛡️</span>
+      <div class="trust-text">
+        <strong>Echte Praxis-Erfahrung</strong>
+        <span>Länder-Vorschriften, Maut &amp; Pannen-Lektionen</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Highlights Banner & Features -->
+  <div class="feature-strip">
+    <div class="feature-card" onclick="showView('finder')">
+      <div class="feature-icon">🔄</div>
+      <h4>Echte 360°-Rundreisen</h4>
+      <p>Hin- &amp; Rückweg über zwei verschiedene Traumstrecken ab deiner Haustür – ohne Backtracking und realistisch fahrbar im gewählten Zeitbudget.</p>
+    </div>
+    <div class="feature-card" onclick="showView('paesse')">
+      <div class="feature-icon">🏔️</div>
+      <h4>315 Legendäre Pässe weltweit</h4>
+      <p>A1–A5 Asphalt- &amp; O1–O5 Offroad-Levelsystem, Höhenprofile, Öffnungsmonate, Maut- und Steigungsinfos für Alpen, Pyrenäen &amp; Fernreisen.</p>
+    </div>
+    <div class="feature-card" onclick="showView('karte')">
+      <div class="feature-icon">🗺️</div>
+      <h4>1-Klick-Navigation &amp; GPX</h4>
+      <p>Echte Straßen- &amp; Kurvennavigation auf der Karte – mit 1 Klick direkt in Kurviger, Google Maps oder als Multi-Track-GPX fürs Navi.</p>
+    </div>
+  </div>
+
+  <!-- Carousel 1: Dynamischer Pass-Katalog / Regionen & Wohnort -->
+  <div class="carousel-section">
+    <div class="carousel-header">
+      <div>
+        <div style="display:flex;align-items:center;gap:.7rem;flex-wrap:wrap">
+          <h3 id="carouselGigantenTitle" style="margin:0">👑 Die Giganten der Alpen (> 2.500 m)</h3>
+          <select id="carouselPassRegionSelect" class="carousel-region-select" onchange="setCarouselPassMode(this.value)" aria-label="Gebirge oder Region auswählen">
+            <option value="alpen">🏔️ Alpen (> 2.500 m)</option>
+            <option value="near">📍 In meiner Nähe (Wohnort)</option>
+            <option value="mittelgebirge">🌲 Deutsche Mittelgebirge</option>
+            <option value="dolomiten">⛰️ Dolomiten &amp; Trentino</option>
+            <option value="pyrenaeen">🌄 Pyrenäen</option>
+            <option value="skandinavien">🌲 Skandinavien &amp; Fjorde</option>
+            <option value="weltweit">🌍 Höchste Pässe Weltweit</option>
+            <option value="bucket">⭐ Meine Bucket-List</option>
+          </select>
+        </div>
+        <p class="carousel-sub" id="carouselGigantenSub">Die höchsten befahrbaren Passstraßen Europas mit Höhenprofilen</p>
+      </div>
+      <button class="carousel-nav-btn" onclick="showView('paesse')">Alle 315 Pässe →</button>
+    </div>
+
+    <!-- Standort / City Bar (wird eingeblendet bei 'near') -->
+    <div id="carouselNearCityBar" class="carousel-near-bar" style="display:none">
+      <label for="carouselHomeCity">📍 Ausgangsort:</label>
+      <select id="carouselHomeCity" class="carousel-city-select" onchange="setCarouselHomeCity(this.value)">
+        <option value="München">München</option>
+        <option value="Stuttgart">Stuttgart</option>
+        <option value="Innsbruck">Innsbruck</option>
+        <option value="Salzburg">Salzburg</option>
+        <option value="Zürich">Zürich</option>
+        <option value="Basel">Basel</option>
+        <option value="Bern">Bern</option>
+        <option value="Bozen">Bozen</option>
+        <option value="Wien">Wien</option>
+        <option value="Klagenfurt">Klagenfurt</option>
+        <option value="Bregenz">Bregenz</option>
+        <option value="Frankfurt">Frankfurt</option>
+        <option value="Köln">Köln</option>
+        <option value="Nürnberg">Nürnberg</option>
+        <option value="Dresden">Dresden</option>
+        <option value="Hannover">Hannover</option>
+        <option value="Leipzig">Leipzig</option>
+        <option value="Berlin">Berlin</option>
+        <option value="Hamburg">Hamburg</option>
+      </select>
+      <button class="carousel-gps-btn" onclick="useCurrentLocationForCarousel()">
+        📡 GPS-Standort
+      </button>
+      <span id="carouselNearStatus" style="font-size:.78rem;color:var(--muted)"></span>
+    </div>
+
+    <div class="swipe-carousel" id="carouselGiganten"></div>
+  </div>
+
+  <!-- Carousel 2: Kuratierte Traumtouren fürs Wochenende -->
+  <div class="carousel-section">
+    <div class="carousel-header">
+      <div>
+        <h3>🛣️ Wochenend- &amp; Kurventouren</h3>
+        <p class="carousel-sub">Perfekt fahrbar in 1–3 Tagen – inklusive GPX-Track &amp; Kurviger-Export</p>
+      </div>
+      <button class="carousel-nav-btn" onclick="showView('routen')">Alle 159 Routen →</button>
+    </div>
+    <div class="swipe-carousel" id="carouselWochenende"></div>
+  </div>
+
+  <!-- Carousel 3: Vanlife & Wildcamping Highlights -->
+  <div class="carousel-section">
+    <div class="carousel-header">
+      <div>
+        <h3>🏕️ Vanlife &amp; Wildcamping Highlights</h3>
+        <p class="carousel-sub">Traumstrecken mit legalen Freisteh-Möglichkeiten &amp; Camping-Ampel</p>
+      </div>
+      <button class="carousel-nav-btn" onclick="showView('wohnmobil')">Camper-Hub öffnen →</button>
+    </div>
+    <div class="swipe-carousel" id="carouselVanlife"></div>
+  </div>
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin:2.5rem 0 1rem;flex-wrap:wrap;gap:.5rem">
+    <h3 style="margin:0;font-size:1.3rem">Top-Routen der Community</h3>
+    <button class="ctrl-btn secondary" style="font-size:0.82rem;padding:0.35rem 0.85rem" onclick="showView('routen')">Alle 159 Routen entdecken →</button>
+  </div>
+  <div class="route-grid" id="topRoutes"></div>
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin:2.8rem 0 1rem;flex-wrap:wrap;gap:.5rem">
+    <div>
+      <h3 style="margin:0;font-size:1.3rem">Legendäre Gebirgspässe</h3>
+      <p class="hint" style="margin:0.2rem 0 0;font-size:0.85rem">Mit Höhenprofilen, Asphalt- (A1–A5) &amp; Offroad-Stufen (O1–O5)</p>
+    </div>
+    <button class="ctrl-btn secondary" style="font-size:0.82rem;padding:0.35rem 0.85rem" onclick="showView('paesse')">Alle 315 Pässe durchstöbern →</button>
+  </div>
+  <div class="route-grid" id="topPasses"></div>
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin:2.8rem 0 1rem;flex-wrap:wrap;gap:.5rem">
+    <h3 style="margin:0;font-size:1.3rem">Länder &amp; Kontinente</h3>
+    <button class="ctrl-btn secondary" style="font-size:0.82rem;padding:0.35rem 0.85rem" onclick="showView('laender')">Alle 47 Länder öffnen →</button>
+  </div>
+  <div class="continent-grid" id="continentGrid"></div>
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin:2.8rem 0 1rem;flex-wrap:wrap;gap:.5rem">
+    <div>
+      <h3 style="margin:0;font-size:1.3rem">Erfahrungsberichte &amp; Pannen-Lektionen</h3>
+      <p class="hint" style="margin:0.2rem 0 0;font-size:0.85rem">Echte Learnings von Reisenden weltweit – damit dir unterwegs nichts passiert</p>
+    </div>
+    <button class="ctrl-btn secondary" style="font-size:0.82rem;padding:0.35rem 0.85rem" onclick="showView('probleme')">Alle Notfall-Guides →</button>
+  </div>
+  <div id="topProblems"></div>
+
+  <!-- Über Rydo: Storytelling, Mission & Social Proof -->
+  <div class="about-rydo-card">
+    <div class="about-rydo-badge">ÜBER RYDO</div>
+    <h3>Von Abenteurern für Abenteurer</h3>
+    <p>
+      Rydo entstand aus der Frustration über unübersichtliche Foren, lückenhafte Pass-Websites und endlose Recherche vor jeder Reise.
+      Unsere Mission: Die sauberste, ehrlichste und umfassendste Datenbank für kurvenreiche Traumstraßen, Alpenpässe und Fernreisen – ohne lästige Werbung, ohne Tracking und überall auf der Welt offline verfügbar.
+    </p>
+    <div class="about-rydo-stats">
+      <div class="ar-stat"><strong>315</strong><span>Pässe &amp; Bergstraßen</span></div>
+      <div class="ar-stat"><strong>159</strong><span>Kuratierte Touren</span></div>
+      <div class="ar-stat"><strong>47</strong><span>Länder-Dossiers</span></div>
+      <div class="ar-stat"><strong>100%</strong><span>Kostenlos &amp; Offline</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PÄSSE ============ -->
+<section id="view-paesse" class="view">
+  <h2>🏔️ Pässe-Finder & Höhenprofile</h2>
+  <p class="hint">60+ dokumentierte Passstraßen aller Kontinente. Levelsystem: <b>A1–A5</b> (Asphalt) und <b>O1–O5</b> (Offroad/Gravel). Öffnungszeiten, Straßenoberfläche, Maut & Permit-Infos.</p>
+
+  <!-- Pass Tracker & Gamification Banner -->
+  <div id="passTrackerBanner" class="pass-tracker-banner"></div>
+
+  <!-- Level-Legende -->
+  <div class="pass-legend">
+    <div class="pass-legend-group">
+      <span class="pass-legend-title">🛣️ Asphalt</span>
+      <span class="level-badge level-a1">A1</span><span class="level-label">Einsteiger</span>
+      <span class="level-badge level-a2">A2</span><span class="level-label">Gemütlich</span>
+      <span class="level-badge level-a3">A3</span><span class="level-label">Sportlich</span>
+      <span class="level-badge level-a4">A4</span><span class="level-label">Anspruchsvoll</span>
+      <span class="level-badge level-a5">A5</span><span class="level-label">Extrem</span>
+    </div>
+    <div class="pass-legend-group">
+      <span class="pass-legend-title">🪨 Offroad</span>
+      <span class="level-badge level-o1">O1</span><span class="level-label">Gravel</span>
+      <span class="level-badge level-o2">O2</span><span class="level-label">Trail</span>
+      <span class="level-badge level-o3">O3</span><span class="level-label">Enduro</span>
+      <span class="level-badge level-o4">O4</span><span class="level-label">Extrem</span>
+      <span class="level-badge level-o5">O5</span><span class="level-label">Expedition</span>
+    </div>
+  </div>
+
+  <div class="filterbar" id="passFilterBar">
+    <select id="passTrackerFilter" onchange="renderPasses()" aria-label="Mein Pass-Tracker">
+      <option value="alle">🧭 Alle Pässe</option>
+      <option value="conquered">✅ Nur bezwungene Pässe</option>
+      <option value="bucket">⭐ Meine Bucket-List</option>
+      <option value="unconquered">🏔️ Noch unbezwingt (Neuland)</option>
+    </select>
+    <select id="passContinentFilter" onchange="renderPasses()" aria-label="Kontinent">
+      <option value="alle">Alle Kontinente</option>
+      <option value="Europa">Europa</option>
+      <option value="Asien">Asien</option>
+      <option value="Afrika">Afrika</option>
+      <option value="Amerika (Nord)">Amerika Nord</option>
+      <option value="Amerika (Süd)">Amerika Süd</option>
+      <option value="Ozeanien">Ozeanien</option>
+    </select>
+    <select id="passLevelFilter" onchange="renderPasses()" aria-label="Level">
+      <option value="alle">Alle Level</option>
+      <optgroup label="🛣️ Asphalt">
+        <option value="A1">A1 – Einsteiger</option>
+        <option value="A2">A2 – Gemütlich</option>
+        <option value="A3">A3 – Sportlich</option>
+        <option value="A4">A4 – Anspruchsvoll</option>
+        <option value="A5">A5 – Extrem</option>
+      </optgroup>
+      <optgroup label="🪨 Offroad">
+        <option value="O1">O1 – Gravel-Einsteiger</option>
+        <option value="O2">O2 – Gravel</option>
+        <option value="O3">O3 – Trail</option>
+        <option value="O4">O4 – Enduro</option>
+        <option value="O5">O5 – Expedition</option>
+      </optgroup>
+    </select>
+    <select id="passSurfaceFilter" onchange="renderPasses()" aria-label="Oberfläche">
+      <option value="alle">Alle Oberflächen</option>
+      <option value="asphalt">🛣️ Asphalt (gepflegt)</option>
+      <option value="asphalt-rough">⚠️ Asphalt (rissig)</option>
+      <option value="mixed">🔀 Gemischt</option>
+      <option value="gravel">🪨 Schotter</option>
+      <option value="gravel-loose">⚠️🪨 Loser Schotter</option>
+      <option value="dirt">🟤 Piste/Erde</option>
+    </select>
+    <select id="passMonthFilter" onchange="renderPasses()" aria-label="Monat offen">
+      <option value="alle">Jeder Monat</option>
+      <option value="1">Januar</option>
+      <option value="2">Februar</option>
+      <option value="3">März</option>
+      <option value="4">April</option>
+      <option value="5">Mai</option>
+      <option value="6">Juni</option>
+      <option value="7">Juli</option>
+      <option value="8">August</option>
+      <option value="9">September</option>
+      <option value="10">Oktober</option>
+      <option value="11">November</option>
+      <option value="12">Dezember</option>
+    </select>
+    <select id="passCamperFilter" onchange="renderPasses()" aria-label="Wohnmobil-Eignung">
+      <option value="alle">🚐 Alle Pässe (WoMo &amp; Bike)</option>
+      <option value="geeignet">🚐 Nur WoMo-tauglich</option>
+      <option value="eingeschraenkt">⚠️ WoMo-Einschränkungen</option>
+      <option value="nicht_geeignet">🚫 Für WoMos ungeeignet/gesperrt</option>
+    </select>
+    <button class="chip" id="passYearRoundFilter" onclick="togglePassYearRound()">🟢 Ganzjährig offen</button>
+    <button class="chip" id="passNoTollFilter" onclick="togglePassNoToll()">💚 Kein Maut</button>
+  </div>
+
+  <div id="passCount" class="hint" style="margin-bottom:.8rem"></div>
+  <div class="pass-grid" id="passGrid"></div>
+</section>
+
+<!-- ============ LÄNDER ============ -->
+<section id="view-laender" class="view">
+  <h2>🌍 Länder-Datenbank & Einreise</h2>
+  <p class="hint">Wähle ein Land für Einreise-Dokumente, Carnet-Pflicht, Versicherungsregeln (Grüne Karte), Wildcamping-Status & dokumentierte Strecken.</p>
+  <div class="filterbar" id="countryFilter"></div>
+  <div id="countryCount" class="hint" style="margin-bottom:.8rem"></div>
+  <div class="country-grid" id="countryGrid"></div>
+</section>
+
+<!-- ============ ROUTEN ============ -->
+<section id="view-routen" class="view">
+  <h2>🛣️ Dokumentierte Routen & Trips</h2>
+  <p class="hint">159 dokumentierte Routen weltweit. Klicke auf den Stern zum Merken oder auf „+ Zu Reise“, um die Strecke direkt in deinen Reiseplaner zu übernehmen.</p>
+  <div class="filterbar">
+    <select id="routeTypeFilter" onchange="renderRoutes()" aria-label="Fahrzeugtyp filtern">
+      <option value="alle">Alle Typen</option>
+      <option value="motorrad">🏍️ Motorrad</option>
+      <option value="bikepacking">🚵 Bikepacking</option>
+      <option value="wohnmobil">🚐 Wohnmobil</option>
+    </select>
+    <select id="routeDiffFilter" onchange="renderRoutes()" aria-label="Schwierigkeit filtern">
+      <option value="alle">Jede Schwierigkeit</option>
+      <option value="leicht">Leicht</option>
+      <option value="mittel">Mittel</option>
+      <option value="schwer">Schwer</option>
+      <option value="extrem">Extrem</option>
+    </select>
+    <select id="routeCountryFilter" onchange="renderRoutes()" aria-label="Land filtern">
+      <option value="alle">Alle Länder</option>
+      <option value="Island">🇮🇸 Island</option>
+                  <option value="Mexiko">🇲🇽 Mexiko</option>
+                </select>
+    <select id="routeContinentFilter" onchange="renderRoutes()" aria-label="Kontinent filtern">
+      <option value="alle">Alle Kontinente</option>
+      <option value="Europa">Europa</option>
+      <option value="Asien">Asien</option>
+      <option value="Afrika">Afrika</option>
+      <option value="Amerika (Nord)">Amerika Nord</option>
+      <option value="Amerika (Süd)">Amerika Süd</option>
+      <option value="Ozeanien">Ozeanien</option>
+    </select>
+    <select id="routeAccommFilter" onchange="renderRoutes()" aria-label="Übernachtung filtern">
+      <option value="alle">Alle Übernachtungen</option>
+      <option value="Campingplatz">Campingplatz</option>
+      <option value="Stellplatz">Stellplatz</option>
+      <option value="Hotel">Hotel</option>
+      <option value="Weingut">Weingut/Bauernhof</option>
+      <option value="Wildcamp">Wildcamp</option>
+    </select>
+    <button class="chip" id="wildFilterRoute" onclick="toggleWildFilter()">🏕️ Nur Wildcamping</button>
+    <button class="chip" id="favFilterRoute" onclick="toggleFavFilterRoute()">⭐ Nur Favoriten</button>
+  </div>
+  <div id="routeCount" class="hint" style="margin-bottom:.8rem"></div>
+  <div class="route-grid big" id="routeGrid"></div>
+</section>
+
+<!-- ============ KARTE ============ -->
+<section id="view-karte" class="view">
+  <h2>🗺️ Interaktive Weltkarte & Höhenprofil</h2>
+  <p class="hint">Interaktive Karte aller Routen. Klicke auf einen Marker oder wähle oben links eine Route. <b>Hovere über das Höhenprofil</b>, um den Verlauf live auf der Karte nachzuverfolgen.</p>
+  
+  <div class="map-legend">
+    <span><i class="dot dot-moto"></i> 🏍️ Motorrad</span>
+    <span><i class="dot dot-bp"></i> 🚵 Bikepacking</span>
+    <span><i class="dot dot-fav"></i> ⭐ Favorit</span>
+  </div>
+  
+  <div class="filterbar" id="mapPoiFilter" style="margin-bottom:.8rem">
+    <button class="chip active" data-poi="alle" onclick="filterMapPois('alle', this)">Alle POIs</button>
+    <button class="chip" data-poi="attractions" onclick="toggleMapAttractions(this)" style="background:rgba(255,107,53,0.15);border-color:var(--accent);color:var(--accent);font-weight:600">🌋 Natursensationen (28)</button>
+    <button class="chip" data-poi="camping" onclick="filterMapPois('camping', this)">🏕️ Camping &amp; WoMo</button>
+    <button class="chip" data-poi="fuel" onclick="filterMapPois('fuel', this)">⛽ Tankstelle</button>
+    <button class="chip" data-poi="accommodation" onclick="filterMapPois('accommodation', this)">🏨 Unterkunft</button>
+    <button class="chip" data-poi="food" onclick="filterMapPois('food', this)">🍽️ Restaurant</button>
+    <button class="chip" data-poi="viewpoint" onclick="filterMapPois('viewpoint', this)">🌄 Pass/Aussicht</button>
+    <button class="chip" data-poi="water" onclick="filterMapPois('water', this)">💧 Wasser</button>
+  </div>
+  
+  <div id="map"></div>
+  
+  <div id="gpxDropZone" style="margin-top:.9rem;border:1px dashed var(--border);border-radius:12px;padding:1.1rem;text-align:center;color:var(--muted);font-size:.88rem;background:var(--bg2)">
+    📤 GPX hierher ziehen oder <label for="gpxFileInput" style="color:var(--accent);cursor:pointer;text-decoration:underline;font-weight:600">Datei wählen</label>
+    <input type="file" id="gpxFileInput" accept=".gpx" style="display:none" onchange="handleGpxFile(this.files[0])">
+    <span style="margin:0 .6rem">·</span>
+    <button class="btn" style="padding:.25rem .6rem;font-size:.78rem" onclick="loadDemoGpx()">📥 Demo-GPX (Transfăgărășan) laden</button>
+    <div style="font-size:.76rem;color:var(--muted);margin-top:.4rem">🔒 100 % lokal in deinem Browser verarbeitet — kein Server-Upload erforderlich.</div>
+  </div>
+</section>
+
+<!-- ============ SAISON-KALENDER ============ -->
+<section id="view-kalender" class="view">
+  <h2>📅 Saison-Kalender — Wann fahre ich wo?</h2>
+  <p class="hint">Grün = empfohlene Reisezeit laut Reiseberichten. Klicke auf einen Monat in der Kopfzeile, um passende Strecken zu filtern.</p>
+  <div class="cal-wrap">
+    <table class="cal-table" id="calTable"><thead></thead><tbody></tbody></table>
+  </div>
+  <div id="calSelected" class="cal-selected"></div>
+  <div class="route-grid big" id="calRoutes"></div>
+</section>
+
+<!-- ============ ROUTEN-FINDER WIZARD ============ -->
+<section id="view-finder" class="view">
+  <div class="finder-header">
+    <div style="display:inline-block;padding:.3rem .8rem;border-radius:20px;background:rgba(255,107,53,0.15);color:var(--accent);font-size:.82rem;font-weight:700;margin-bottom:.5rem">✨ Intelligente Reise-Empfehlung</div>
+    <h2>🧭 Finde deine perfekte Motorrad-, Bikepacking- oder Wohnmobil-Reise</h2>
+    <p class="hint">Beantworte 4 kurze Fragen zu Startpunkt, Fahrkönnen, Reisezeitraum und Stil — unser Empfehlungs-Algorithmus gleicht deine Wünsche mit allen <b>101 Routen</b> und <b>53 Pässen</b> weltweit ab.</p>
+  </div>
+
+  <!-- Wizard Wrapper -->
+  <div class="wizard-box" id="finderWizardBox">
+    <!-- Live Match Preview Header -->
+    <div class="finder-live-bar">
+      <div class="finder-live-status">
+        <span class="live-pulse"></span>
+        <span>Live-Match:</span>
+        <strong id="liveRouteCount">101</strong> Routen & <strong id="livePassCount">53</strong> Pässe passend
+      </div>
+      <div class="finder-live-hint" id="livePreviewHint">Wähle deine Präferenzen für ein maßgeschneidertes Ergebnis</div>
+    </div>
+
+    <!-- Progress Indicator -->
+    <div class="wizard-progress-track">
+      <div class="wizard-progress-bar" id="finderProgressBar" style="width:20%"></div>
+    </div>
+    <div class="wizard-step-tabs">
+      <div class="wizard-step-tab active" id="tabStep1" onclick="jumpFinderStep(1)"><span>1</span> Startpunkt</div>
+      <div class="wizard-step-tab" id="tabStep2" onclick="jumpFinderStep(2)"><span>2</span> Fahrlevel & Tempo</div>
+      <div class="wizard-step-tab" id="tabStep3" onclick="jumpFinderStep(3)"><span>3</span> Zeitraum</div>
+      <div class="wizard-step-tab" id="tabStep4" onclick="jumpFinderStep(4)"><span>4</span> Erlebnis & No-Gos</div>
+      <div class="wizard-step-tab" id="tabStep5" onclick="jumpFinderStep(5)"><span>5</span> Ergebnis</div>
+    </div>
+
+    <!-- Step 1: Startpunkt -->
+    <div class="wizard-step-panel active" id="stepPanel1">
+      <h3 class="wizard-question-title">📍 Wo startest du deine Tour?</h3>
+      <p class="wizard-question-sub">Wähle deine Region oder klicke direkt auf deinen Heimatort für realistische Anfahrtszeiten:</p>
+      
+      <div class="finder-cards-grid" id="finderStartGrid">
+        <div class="finder-choice-card active" data-region="dach" onclick="selectStartRegion('dach', this)">
+          <div class="choice-icon">🇩🇪 🇦🇹 🇨🇭</div>
+          <div class="choice-title">DACH-Raum</div>
+          <div class="choice-desc">Deutschland, Österreich, Schweiz — ideal für Alpen, Schwarzwald, Dolomiten & Mitteleuropa</div>
+        </div>
+        <div class="finder-choice-card" data-region="suedeuropa" onclick="selectStartRegion('suedeuropa', this)">
+          <div class="choice-icon">🇮🇹 🇫🇷 🇪🇸</div>
+          <div class="choice-title">Süd- / Westeuropa</div>
+          <div class="choice-desc">Italien, Frankreich, Spanien, Portugal — Mittelmeer, Seealpen, Pyrenäen</div>
+        </div>
+        <div class="finder-choice-card" data-region="skandinavien" onclick="selectStartRegion('skandinavien', this)">
+          <div class="choice-icon">🇳🇴 🇸🇪 🇫🇮</div>
+          <div class="choice-title">Nordeuropa</div>
+          <div class="choice-desc">Norwegen, Schweden, Finnland, Dänemark — Fjorde, Jedermannsrecht, Mitternachtssonne</div>
+        </div>
+        <div class="finder-choice-card" data-region="balkan" onclick="selectStartRegion('balkan', this)">
+          <div class="choice-icon">🇭🇷 🇸🇮 🇬🇷</div>
+          <div class="choice-title">Balkan & Osteuropa</div>
+          <div class="choice-desc">Kroatien, Slowenien, Bosnien, Rumänien, Griechenland — Kurven, Küstenstraßen & TET</div>
+        </div>
+        <div class="finder-choice-card" data-region="uk" onclick="selectStartRegion('uk', this)">
+          <div class="choice-icon">🇬🇧 🇮🇪 🏴󠁧󠁢󠁳󠁣󠁴󠁿</div>
+          <div class="choice-title">UK & Irland</div>
+          <div class="choice-desc">Schottland (NC500), Wales, Wild Atlantic Way, Isle of Man</div>
+        </div>
+        <div class="finder-choice-card" data-region="weltweit" onclick="selectStartRegion('weltweit', this)">
+          <div class="choice-icon">✈️ 🌍 🏍️</div>
+          <div class="choice-title">Weltweit / Flugziel</div>
+          <div class="choice-desc">Mietmotorrad oder Verschiffung — Himalaya, Pamir, Afrika, Südamerika, USA & Neuseeland</div>
+        </div>
+      </div>
+
+      <div class="finder-input-box">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.4rem;margin-bottom:.4rem">
+          <label for="finderCityInput" style="margin:0"><b>Konkreter Startort oder Adresse:</b></label>
+          <button type="button" class="btn btn-sm" id="btnGpsLocate" onclick="useCurrentLocation()" style="background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.4);color:var(--text)">
+            📍 Meinen GPS-Standort nutzen
+          </button>
+        </div>
+        <div style="position:relative">
+          <input type="text" id="finderCityInput" placeholder="Ort, PLZ oder Adresse (z. B. 80331 München, Wien, Zürich...)" oninput="onCityInputChanged(this.value)" autocomplete="off">
+          <div id="citySearchResults" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;z-index:999;max-height:180px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,0.4)"></div>
+        </div>
+        
+        <div class="finder-quick-cities">
+          <span class="quick-city-label">Schnellwahl:</span>
+          <button type="button" class="quick-city-btn" onclick="selectQuickCity('München')">München</button>
+          <button type="button" class="quick-city-btn" onclick="selectQuickCity('Stuttgart')">Stuttgart</button>
+          <button type="button" class="quick-city-btn" onclick="selectQuickCity('Frankfurt')">Frankfurt</button>
+          <button type="button" class="quick-city-btn" onclick="selectQuickCity('Köln')">Köln</button>
+          <button type="button" class="quick-city-btn" onclick="selectQuickCity('Hamburg')">Hamburg</button>
+          <button type="button" class="quick-city-btn" onclick="selectQuickCity('Berlin')">Berlin</button>
+          <button type="button" class="quick-city-btn" onclick="selectQuickCity('Wien')">Wien</button>
+          <button type="button" class="quick-city-btn" onclick="selectQuickCity('Innsbruck')">Innsbruck</button>
+          <button type="button" class="quick-city-btn" onclick="selectQuickCity('Zürich')">Zürich</button>
+        </div>
+      </div>
+
+      <!-- Startzeit / Aufbruch-Modus -->
+      <div style="margin:1rem 0 1.5rem">
+        <label style="font-size:.9rem;font-weight:700;display:block;margin-bottom:.5rem">⏰ Startzeit am Abreisetag:</label>
+        <div class="finder-cards-grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))" id="finderStartTimeGrid">
+          <div class="finder-choice-card active" data-start-time="full" onclick="selectStartTime('full', this)">
+            <div class="choice-title">🌅 Ganztages-Start (Früh morgens)</div>
+            <div class="choice-desc">Startet am Vormittag. Volle reguläre Etappe am ersten Reisetag möglich.</div>
+          </div>
+          <div class="finder-choice-card" data-start-time="late" onclick="selectStartTime('late', this)">
+            <div class="choice-title">🌇 Feierabend-Start (ab 14–16 Uhr)</div>
+            <div class="choice-desc">Erste Etappe wird auf max. 100–140 km begrenzt. Entspannter erster Übernachtungsstopp.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wizard-actions">
+        <div></div>
+        <button class="btn btn-primary" onclick="nextFinderStep(2)">Weiter: Fahrlevel & Tempo ➔</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Fahrlevel & Tempo -->
+    <div class="wizard-step-panel" id="stepPanel2">
+      <h4 style="margin:0 0 .6rem;color:var(--text);font-size:.95rem">🚗 Fahrzeug &amp; Reiseform:</h4>
+      <div class="finder-cards-grid" style="grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));margin-bottom:1.4rem" id="finderVehicleGrid">
+        <div class="finder-choice-card active" data-vehicle="motorrad" onclick="selectVehicle('motorrad', this)">
+          <div class="choice-icon">🏍️</div>
+          <div class="choice-title">Motorrad-Tour</div>
+          <div class="choice-desc">Klassischer Biker-Trip (250–350 km/Tag). Pässe, Schräglagen &amp; Kurvenvergnügen.</div>
+        </div>
+        <div class="finder-choice-card" data-vehicle="wohnmobil" onclick="selectVehicle('wohnmobil', this)">
+          <div class="choice-icon">🚐</div>
+          <div class="choice-title">Wohnmobil / Camper</div>
+          <div class="choice-desc">Kastenwagen &amp; WoMo (140–200 km/Tag). Geprüfte Pass-Limits, V/E-Stationen &amp; Stellplätze.</div>
+        </div>
+        <div class="finder-choice-card" data-vehicle="bikepacking" onclick="selectVehicle('bikepacking', this)">
+          <div class="choice-icon">🚵</div>
+          <div class="choice-title">Bikepacking / Fahrrad</div>
+          <div class="choice-desc">Gravel &amp; Reiserad (50–85 km/Tag). Realistische Muskelkraft-Etappen, Natur- &amp; Zelt-Stopps.</div>
+        </div>
+      </div>
+
+      <h3 class="wizard-question-title">🏍️ Welches Fahrlevel passt zu dir?</h3>
+      <p class="wizard-question-sub">Wir filtern Steigungen, Kurvenradien, Straßenbelag und Pass-Schwierigkeiten nach deinen Fähigkeiten:</p>
+      
+      <div class="finder-cards-grid" id="finderLevelGrid">
+        <div class="finder-choice-card" data-level="einsteiger" onclick="selectLevel('einsteiger', this)">
+          <div class="choice-icon">🟢</div>
+          <div class="choice-title">Einsteiger (Asphalt A1–A2)</div>
+          <div class="choice-desc">Fahrpraxis bis 2 Jahre. Bevorzugt breite Straßen, sanfte Steigungen, gut ausgebaute Infrastruktur und keine tiefen Schotterpisten.</div>
+          <div class="choice-badge">Schwierigkeit: Leicht</div>
+        </div>
+        <div class="finder-choice-card active" data-level="mittel" onclick="selectLevel('mittel', this)">
+          <div class="choice-icon">🔵</div>
+          <div class="choice-title">Fortgeschritten (A2–A3, O1)</div>
+          <div class="choice-desc">Souverän in Serpentinen und Alpentouren. Erste Pässe gefahren, einfache Schotter- oder Waldwege sind kein Problem.</div>
+          <div class="choice-badge">Schwierigkeit: Mittel (Empfohlen)</div>
+        </div>
+        <div class="finder-choice-card" data-level="erfahren" onclick="selectLevel('erfahren', this)">
+          <div class="choice-icon">🟡</div>
+          <div class="choice-title">Erfahren (A3–A4, O2–O3)</div>
+          <div class="choice-desc">Erprobt auf engen Hochalpenpässen (Stelvio, Gavia, Furka). Schotterstrecken (TET, Hochplateaus) und lange Tagesetappen gewohnt.</div>
+          <div class="choice-badge">Schwierigkeit: Mittel bis Schwer</div>
+        </div>
+        <div class="finder-choice-card" data-level="experte" onclick="selectLevel('experte', this)">
+          <div class="choice-icon">🔴</div>
+          <div class="choice-title">Experte / Adventure (A4–A5, O3–O5)</div>
+          <div class="choice-desc">Keine Angst vor losem Geröll, Flussdurchquerungen, Höhe über 4.000 m (Pamir, Ladakh) oder extremer Einsamkeit.</div>
+          <div class="choice-badge">Schwierigkeit: Schwer & Extrem</div>
+        </div>
+      </div>
+
+      <!-- Feintuning: Tages-km & Fahrstil -->
+      <div class="finder-subpanel">
+        <h4 style="margin:0 0 .6rem;color:var(--text);font-size:.95rem">⚙️ Feintuning: Gewünschtes Tagespensum &amp; Reiserhythmus</h4>
+        <div class="finder-cards-grid" id="finderPaceGrid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));margin-bottom:.8rem">
+          <div class="finder-choice-card" data-pace="gemuetlich" onclick="selectPace('gemuetlich', this)">
+            <div class="choice-title">🟢 Gemütlich</div>
+            <div class="choice-desc">150–220 km/Tag · Viele Fotostopps, Café-Pausen &amp; Zeit für Kultur</div>
+          </div>
+          <div class="finder-choice-card active" data-pace="standard" onclick="selectPace('standard', this)">
+            <div class="choice-title">🔵 Ausgewogen</div>
+            <div class="choice-desc">250–350 km/Tag · Flottes Touren mit sportlichem Flow</div>
+          </div>
+          <div class="finder-choice-card" data-pace="sportlich" onclick="selectPace('sportlich', this)">
+            <div class="choice-title">🔴 Kilometerfresser</div>
+            <div class="choice-desc">400+ km/Tag · Früher Start, spätes Ankommen, reine Fahrzeit</div>
+          </div>
+        </div>
+        <div id="womoPaceAdvice" style="display:none;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:10px;padding:.75rem 1rem;margin-top:.8rem;font-size:.84rem;line-height:1.45;color:var(--text)">
+          💡 <b>WoMo-Kilometergefühl:</b> Bei 45–55 km/h Reiseschnitt auf Land- und Gebirgsstraßen entsprechen 150 km rund <b>3 bis 3,5 Stunden reiner Lenkzeit</b>. Zusammen mit Morgenroutine (V/E, Frühstück) und rechtzeitiger Stellplatzsuche vor 17:00 Uhr sind <b>150–180 km/Tag der optimale Urlaubs-Sweetspot</b>. Plane alle 3–4 Tage einen Ruhetag/Stehtag (0 km) ein!
+        </div>
+      </div>
+
+      <div class="wizard-actions">
+        <button class="btn btn-secondary" onclick="prevFinderStep(1)">⬅️ Zurück</button>
+        <button class="btn btn-primary" onclick="nextFinderStep(3)">Weiter: Zeitraum & Dauer ➔</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Zeitraum & Reisedauer -->
+    <div class="wizard-step-panel" id="stepPanel3">
+      <h3 class="wizard-question-title">📅 Wann & wie lange möchtest du reisen?</h3>
+      <p class="wizard-question-sub">Gibt Wintersperren, Monsunzeiten und beste Saisonfenster automatisch an:</p>
+
+      <div style="margin-bottom:1.5rem">
+        <label style="font-size:.9rem;font-weight:700;display:block;margin-bottom:.5rem">Reisemonat:</label>
+        <div class="month-pill-grid" id="finderMonthPills">
+          <button class="month-pill" data-month="alle" onclick="selectMonth('alle', this)">Egal / Flexibel</button>
+          <button class="month-pill" data-month="1" onclick="selectMonth(1, this)">Jan</button>
+          <button class="month-pill" data-month="2" onclick="selectMonth(2, this)">Feb</button>
+          <button class="month-pill" data-month="3" onclick="selectMonth(3, this)">Mär</button>
+          <button class="month-pill" data-month="4" onclick="selectMonth(4, this)">Apr</button>
+          <button class="month-pill" data-month="5" onclick="selectMonth(5, this)">Mai</button>
+          <button class="month-pill" data-month="6" onclick="selectMonth(6, this)">Jun</button>
+          <button class="month-pill active" data-month="7" onclick="selectMonth(7, this)">Jul</button>
+          <button class="month-pill" data-month="8" onclick="selectMonth(8, this)">Aug</button>
+          <button class="month-pill" data-month="9" onclick="selectMonth(9, this)">Sep</button>
+          <button class="month-pill" data-month="10" onclick="selectMonth(10, this)">Okt</button>
+          <button class="month-pill" data-month="11" onclick="selectMonth(11, this)">Nov</button>
+          <button class="month-pill" data-month="12" onclick="selectMonth(12, this)">Dez</button>
+        </div>
+      </div>
+
+      <div>
+        <label style="font-size:.9rem;font-weight:700;display:block;margin-bottom:.5rem">Verfügbare Zeit / Reisedauer:</label>
+        <div class="finder-cards-grid duration-grid" id="finderDurationGrid">
+          <div class="finder-choice-card" data-duration="weekend" onclick="selectDuration('weekend', this)">
+            <div class="choice-icon">⚡</div>
+            <div class="choice-title">Kurztrip / Wochenende</div>
+            <div class="choice-desc">2–4 Tage · ca. 300–1.200 km</div>
+          </div>
+          <div class="finder-choice-card active" data-duration="week" onclick="selectDuration('week', this)">
+            <div class="choice-icon">🗓️</div>
+            <div class="choice-title">1 Woche</div>
+            <div class="choice-desc">5–8 Tage · ca. 1.000–2.500 km</div>
+          </div>
+          <div class="finder-choice-card" data-duration="two_weeks" onclick="selectDuration('two_weeks', this)">
+            <div class="choice-icon">🗓️🗓️</div>
+            <div class="choice-title">2 Wochen</div>
+            <div class="choice-desc">9–16 Tage · ca. 2.000–5.000 km</div>
+          </div>
+          <div class="finder-choice-card" data-duration="month" onclick="selectDuration('month', this)">
+            <div class="choice-icon">🌍</div>
+            <div class="choice-title">3+ Wochen / Fernreise</div>
+            <div class="choice-desc">17–40+ Tage · Große Transkontinental-Tour</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wizard-actions">
+        <button class="btn btn-secondary" onclick="prevFinderStep(2)">⬅️ Zurück</button>
+        <button class="btn btn-primary" onclick="nextFinderStep(4)">Weiter: Erlebnis & No-Gos ➔</button>
+      </div>
+    </div>
+
+    <!-- Step 4: Stil, Erlebnis & No-Gos -->
+    <div class="wizard-step-panel" id="stepPanel4">
+      <!-- Tour-Charakter: Rundreise vs. Streckentour -->
+      <h4 style="font-size:.92rem;color:var(--text);margin:.8rem 0 .5rem;display:flex;align-items:center;gap:.4rem">
+        <span>🔄 Tour-Charakter (Rundreise / Streckentour):</span>
+      </h4>
+      <div class="style-tags-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin-bottom:1.4rem;" id="finderTourTypeGrid">
+        <div class="style-tag-card active" data-tourtype="alle" onclick="selectTourType('alle', this)">
+          <span class="tag-icon">🔀</span>
+          <span class="tag-text">Alle Tourformen</span>
+        </div>
+        <div class="style-tag-card" data-tourtype="rundreise" onclick="selectTourType('rundreise', this)">
+          <span class="tag-icon">🔄</span>
+          <span class="tag-text">Nur Rundreisen (Start = Ziel)</span>
+        </div>
+        <div class="style-tag-card" data-tourtype="strecke" onclick="selectTourType('strecke', this)">
+          <span class="tag-icon">➡️</span>
+          <span class="tag-text">Streckentour (A nach B)</span>
+        </div>
+      </div>
+
+      <!-- Schlafstil & Übernachtung -->
+      <h4 style="font-size:.92rem;color:var(--text);margin:.8rem 0 .5rem;display:flex;align-items:center;gap:.4rem">
+        <span>🏕️ Schlafstil &amp; Übernachtungspräferenz:</span>
+      </h4>
+      <div class="style-tags-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin-bottom:1.4rem;" id="finderAccomGrid">
+        <div class="style-tag-card active" data-accom="alle" onclick="selectAccommodation('alle', this)">
+          <span class="tag-icon">🔀</span>
+          <span class="tag-text">Flexibel / Alle Unterkünfte</span>
+        </div>
+        <div class="style-tag-card" data-accom="womo_camping" onclick="selectAccommodation('womo_camping', this)">
+          <span class="tag-icon">🚐</span>
+          <span class="tag-text">Camping- &amp; WoMo-Stellplätze</span>
+        </div>
+        <div class="style-tag-card" data-accom="zelt_wildcamp" onclick="selectAccommodation('zelt_wildcamp', this)">
+          <span class="tag-icon">⛺</span>
+          <span class="tag-text">Zelt &amp; Wildcamping (Outdoor)</span>
+        </div>
+        <div class="style-tag-card" data-accom="hotel" onclick="selectAccommodation('hotel', this)">
+          <span class="tag-icon">🏨</span>
+          <span class="tag-text">Hotel, Pension &amp; B&amp;B</span>
+        </div>
+      </div>
+
+      <!-- Autobahn-Präferenz -->
+      <h4 style="font-size:.92rem;color:var(--text);margin:.8rem 0 .5rem;display:flex;align-items:center;gap:.4rem">
+        <span>🛣️ Autobahn- &amp; Transit-Präferenz:</span>
+      </h4>
+      <div class="style-tags-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin-bottom:1.4rem;" id="finderAutobahnGrid">
+        <div class="style-tag-card" data-autobahn="no_highway" onclick="selectAutobahnPref('no_highway', this)">
+          <span class="tag-icon">🚫</span>
+          <span class="tag-text">0 % Autobahn (Kurven pur)</span>
+        </div>
+        <div class="style-tag-card active" data-autobahn="max_2h" onclick="selectAutobahnPref('max_2h', this)">
+          <span class="tag-icon">⚡</span>
+          <span class="tag-text">Max. 2h Autobahn-Transit</span>
+        </div>
+        <div class="style-tag-card" data-autobahn="any" onclick="selectAutobahnPref('any', this)">
+          <span class="tag-icon">🚀</span>
+          <span class="tag-text">Schnellste Anreise (Egal)</span>
+        </div>
+      </div>
+
+      <h4 style="font-size:.92rem;color:var(--text);margin:.8rem 0 .5rem">✨ Wunsch-Highlights &amp; Landschaft:</h4>
+      <div class="style-tags-grid" id="finderStyleTags">
+        <div class="style-tag-card active" data-tag="attraktionen" onclick="toggleStyleTag('attraktionen', this)">
+          <span class="tag-icon">🌋</span>
+          <span class="tag-text">Natursensationen ansteuern</span>
+        </div>
+        <div class="style-tag-card active" data-tag="paesse" onclick="toggleStyleTag('paesse', this)">
+          <span class="tag-icon">⛰️</span>
+          <span class="tag-text">Alpen &amp; Hochgebirgspässe</span>
+        </div>
+        <div class="style-tag-card" data-tag="pass_garantie" onclick="toggleStyleTag('pass_garantie', this)">
+          <span class="tag-icon">🏔️</span>
+          <span class="tag-text">Pass-Garantie (Mind. 1 Pass/Tag)</span>
+        </div>
+        <div class="style-tag-card active" data-tag="kurven" onclick="toggleStyleTag('kurven', this)">
+          <span class="tag-icon">🛣️</span>
+          <span class="tag-text">Kurvenrausch &amp; Serpentinen</span>
+        </div>
+        <div class="style-tag-card" data-tag="offroad" onclick="toggleStyleTag('offroad', this)">
+          <span class="tag-icon">🪨</span>
+          <span class="tag-text">Schotter, Pisten &amp; TET</span>
+        </div>
+        <div class="style-tag-card active" data-tag="natur" onclick="toggleStyleTag('natur', this)">
+          <span class="tag-icon">🌲</span>
+          <span class="tag-text">Wilde Natur &amp; Wälder</span>
+        </div>
+        <div class="style-tag-card active" data-tag="seen_kueste" onclick="toggleStyleTag('seen_kueste', this)">
+          <span class="tag-icon">🌊</span>
+          <span class="tag-text">Seen, Fjorde, Küste &amp; Flüsse</span>
+        </div>
+        <div class="style-tag-card" data-tag="kultur" onclick="toggleStyleTag('kultur', this)">
+          <span class="tag-icon">🏛️</span>
+          <span class="tag-text">Kultur, Dörfer &amp; Kulinarik</span>
+        </div>
+      </div>
+
+      <!-- No-Gos / Ausschlusskriterien -->
+      <h4 style="font-size:.92rem;color:#f87171;margin:1.4rem 0 .5rem;display:flex;align-items:center;gap:.4rem">
+        <span>🚫 Ausschluss-Kriterien („No-Gos“):</span>
+      </h4>
+      <div class="style-tags-grid no-gos-grid" id="finderNoGos">
+        <div class="style-tag-card no-go-card" data-nogo="no_tight_passes" onclick="toggleNoGo('no_tight_passes', this)">
+          <span class="tag-icon">🚫</span>
+          <span class="tag-text">Keine WoMo-Engpässe (Camper-tauglich)</span>
+        </div>
+        <div class="style-tag-card no-go-card" data-nogo="no_offroad" onclick="toggleNoGo('no_offroad', this)">
+          <span class="tag-icon">⛔</span>
+          <span class="tag-text">0 % Offroad (Reiner Asphalt)</span>
+        </div>
+        <div class="style-tag-card no-go-card" data-nogo="no_ferry" onclick="toggleNoGo('no_ferry', this)">
+          <span class="tag-icon">🚢</span>
+          <span class="tag-text">Keine Fähren nötig</span>
+        </div>
+        <div class="style-tag-card no-go-card" data-nogo="no_toll" onclick="toggleNoGo('no_toll', this)">
+          <span class="tag-icon">💶</span>
+          <span class="tag-text">Keine Maut / Vignetten</span>
+        </div>
+        <div class="style-tag-card no-go-card" data-nogo="no_extreme_altitude" onclick="toggleNoGo('no_extreme_altitude', this)">
+          <span class="tag-icon">🏔️</span>
+          <span class="tag-text">Keine Pässe &gt; 2.500 m</span>
+        </div>
+      </div>
+
+      <div class="wizard-actions">
+        <button class="btn btn-secondary" onclick="prevFinderStep(3)">⬅️ Zurück</button>
+        <button class="btn btn-primary" onclick="nextFinderStep(5)">Zur Übersicht & Match ➔</button>
+      </div>
+    </div>
+
+    <!-- Step 5: Übersicht & Match -->
+    <div class="wizard-step-panel" id="stepPanel5">
+      <h3 class="wizard-question-title">🚀 Dein Profil ist bereit!</h3>
+      <p class="wizard-question-sub">Überprüfe deine Angaben und starte den Abgleich mit 101 Touren und 53 Pässen:</p>
+
+      <div class="finder-summary-box" id="finderProfileSummary">
+        <!-- Injected via JS -->
+      </div>
+
+      <div style="text-align:center;margin:1.8rem 0">
+        <button class="btn btn-primary" style="font-size:1.15rem;padding:.9rem 2.2rem;background:linear-gradient(135deg,#ff6b35 0%,#ffd23f 100%);color:#fff;border:none;box-shadow:0 8px 25px rgba(255,107,53,0.4)" onclick="calculateAndShowRecommendations()">
+          🔍 Jetzt passende Routen & Pässe berechnen
+        </button>
+      </div>
+
+      <div class="wizard-actions">
+        <button class="btn btn-secondary" onclick="prevFinderStep(4)">⬅️ Kriterien anpassen</button>
+        <div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results Section -->
+  <div id="finderResultsArea" class="finder-results-section hidden">
+    <div class="finder-results-header">
+      <div>
+        <h3 id="finderResultsTitle" style="margin:0 0 .3rem;font-size:1.4rem">🎯 Top-Empfehlungen für dich</h3>
+        <p class="hint" id="finderResultsSubtitle" style="margin:0">Sortiert nach Match-Score basierend auf deinen Präferenzen.</p>
+      </div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+        <button class="btn" onclick="jumpFinderStep(1)">✏️ Kriterien ändern</button>
+        <button class="btn btn-primary" onclick="showView('meine-reisen')">🧭 Zum Reiseplaner</button>
+      </div>
+    </div>
+
+    <!-- Filter chips for results -->
+    <div class="filterbar" style="margin:1rem 0">
+      <select id="finderSortOrder" onchange="applyFinderSortAndFilter()" aria-label="Sortierung">
+        <option value="score">Sortierung: Höchster Match-Score</option>
+        <option value="duration">Sortierung: Kürzeste Reisedauer</option>
+        <option value="distance">Sortierung: Kürzeste Distanz</option>
+      </select>
+      <button class="chip active" id="finderFilterSeasonOk" onclick="toggleFinderSeasonFilter()">🟢 Nur ideale Saisonzeiten anzeigen</button>
+    </div>
+
+    <!-- Route Recommendations Grid -->
+    <h4 style="margin:1.2rem 0 .6rem;color:var(--text);display:flex;align-items:center;gap:.5rem">
+      <span>🛣️ Passende Routen & Reisen</span>
+      <span class="badge" id="finderRouteCount">0</span>
+    </h4>
+    <div class="finder-route-grid" id="finderRouteGrid"></div>
+
+    <!-- Pass Recommendations Grid -->
+    <h4 style="margin:2.2rem 0 .6rem;color:var(--text);display:flex;align-items:center;gap:.5rem">
+      <span>🏔️ Empfohlene Pässe auf deiner Route</span>
+      <span class="badge" id="finderPassCount">0</span>
+    </h4>
+    <p class="hint" style="margin-bottom:.8rem">Diese Passstraßen passen optimal zu deinem Fahrlevel und Reisezeitraum:</p>
+    <div class="pass-grid" id="finderPassGrid"></div>
+  </div>
+</section>
+
+<!-- ============ MEINE REISEN ============ -->
+<section id="view-meine-reisen" class="view">
+  <h2 data-i18n="myTripsTitle">🧭 Meine Reisen — Reise- & Etappenplaner</h2>
+  <p class="hint" data-i18n="myTripsSub">Erstelle deine eigenen Reisen, baue Etappen aus der Datenbank zusammen und erhalte automatisch deine Dokumenten- & Grenz-Checkliste.</p>
+  <div style="display:flex;gap:.5rem;margin-bottom:1.2rem;flex-wrap:wrap">
+    <button class="btn btn-primary" onclick="openCreateReiseModal()" data-i18n="newTripBtn">+ Neue Reise anlegen</button>
+    <button class="btn" onclick="exportReisen()" data-i18n="exportJson">⤓ Export JSON</button>
+    <label class="btn" style="cursor:pointer" data-i18n="importJson">⤒ Import JSON <input type="file" id="importReisenInput" accept=".json" style="display:none" onchange="importReisen(this.files[0])"></label>
+    <button class="btn" onclick="window.print()" data-i18n="printPdf">🖨️ Reiseplan drucken / PDF</button>
+  </div>
+  <div id="reisenGrid"></div>
+</section>
+
+<!-- ============ WOHNMOBIL ============ -->
+<section id="view-wohnmobil" class="view">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;margin-bottom:.8rem">
+    <div>
+      <h2>🚐 Wohnmobil, Vanlife &amp; Camping</h2>
+      <p class="hint">21 kuratierte Wohnmobil-Rundreisen übersichtlich nach Ländern sortiert, Maut- &amp; 3,5t-Regeln, Bergfahrsicherheit, Stellplätze &amp; interaktive Packliste.</p>
+    </div>
+    <button class="btn btn-primary" onclick="showCamperTab('checkliste', document.querySelector('#camperTabs button:nth-child(4)'))">✅ Packliste öffnen</button>
+  </div>
+
+  <div class="prep-tabs" id="camperTabs" style="margin-bottom:1.4rem">
+    <button class="active" onclick="showCamperTab('touren', this)">🚐 Kuratierte Touren (34)</button>
+    <button onclick="showCamperTab('maut', this)">💶 Maut &amp; 3,5t-Regeln</button>
+    <button onclick="showCamperTab('fahrsicherheit', this)">🛡️ Bergfahrt &amp; Sicherheit</button>
+    <button onclick="showCamperTab('checkliste', this)">✅ Camper-Packliste</button>
+    <button onclick="showCamperTab('plaetze', this)">📍 Stellplätze &amp; Camping (32)</button>
+    <button onclick="showCamperTab('wildcamping', this)">🏕️ Wildcamping-Recht</button>
+    <button onclick="showCamperTab('paesse', this)">🏔️ Alpenpässe-Guide</button>
+    <button onclick="showCamperTab('apps', this)">📱 Camper-Apps</button>
+  </div>
+
+  <!-- Tab 1: Kuratierte Wohnmobil-Rundreisen -->
+  <div id="camperTabTouren" class="camper-tab-pane">
+    <div class="filterbar" style="margin-bottom:0.8rem">
+      <select id="camperRouteCountryFilter" onchange="renderCamperRoutes()" aria-label="Land filtern">
+        <option value="alle">Alle Länder (21 Touren nach Ländern sortiert)</option>
+        <option value="Deutschland">🇩🇪 Deutschland (4 Touren)</option>
+        <option value="Finnland">🇫🇮 Finnland (1 Tour)</option>
+        <option value="Italien">🇮🇹 Italien / Sizilien / Dolomiten (3 Touren)</option>
+        <option value="Nordirland">🇬🇧 Nordirland (1 Tour)</option>
+        <option value="Norwegen">🇳🇴 Norwegen (1 Tour)</option>
+        <option value="Österreich">🇦🇹 Österreich (4 Touren)</option>
+        <option value="Portugal">🇵🇹 Portugal (1 Tour)</option>
+        <option value="Schottland">🏴󠁧󠁢󠁳󠁣󠁴󠁿 Schottland (1 Tour)</option>
+        <option value="Schweiz">🇨🇭 Schweiz (3 Touren)</option>
+        <option value="Slowenien">🇸🇮 Slowenien (1 Tour)</option>
+      </select>
+      <span class="hint" style="align-self:center;margin-left:auto">📍 Touren sind alphabetisch nach Ländern gruppiert</span>
+    </div>
+    <div id="camperCountryPills" style="display:flex;gap:.45rem;flex-wrap:wrap;margin-bottom:1.4rem;"></div>
+    <div class="route-grid" id="camperRoutesGrid"></div>
+  </div>
+
+  <!-- Tab 2: Maut & 3,5t Regeln -->
+  <div id="camperTabMaut" class="camper-tab-pane" style="display:none">
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.6rem;margin-bottom:1.5rem">
+      <h3 style="margin-top:0">💶 Maut, Vignetten &amp; Gewichtsgrenzen (< 3,5 t vs. > 3,5 t)</h3>
+      <p style="font-size:.9rem;color:var(--text-muted);line-height:1.6">
+        Für Wohnmobilfahrer ist das zulässige Gesamtgewicht (zGG) entscheidend: Ab <b>3.501 kg</b> gelten in Österreich, der Schweiz und weiteren Ländern völlig andere Mautsysteme, Transponderpflichten und Tarife als für normale Pkw.
+      </p>
+
+      <div class="legal-matrix-wrap">
+        <table class="legal-matrix-table">
+          <thead>
+            <tr>
+              <th>Land</th>
+              <th>Klasse &le; 3,5 Tonnen (Pkw/Van)</th>
+              <th>Klasse &gt; 3,5 Tonnen (Schweres WoMo)</th>
+              <th>Wichtige Besonderheiten &amp; Sondermauten</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>🇩🇪 Deutschland</b></td>
+              <td><span class="camper-status-badge geeignet">100% Mautfrei</span></td>
+              <td><span class="camper-status-badge geeignet">Mautfrei (Wohnmobil-Ausnahme)</span></td>
+              <td>Seit Juli 2024 gilt die deutsche Lkw-Maut ab 3,5 t. <b>Wohnmobile sind gesetzlich befreit</b>, wenn die Wohneinrichtung fest verbaut ist und dauerhaft dem Wohnen dient. Bei Kontrollen Fahrzeugschein (M1 SA) vorzeigen!</td>
+            </tr>
+                                <tr>
+                                    <td><b>🇫🇷 Frankreich</b></td>
+                                    <td>Mautpflicht (Péage) auf den meisten Autobahnen. Wohnmobile >3m Höhe oder >3,5t zahlen teurere Klasse 3 oder 4.</td>
+                                </tr>
+                                <tr>
+                                    <td><b>🇫🇷 Frankreich</b></td>
+                                    <td><span class="status-partial"><i class="fas fa-exclamation-triangle"></i></span></td>
+                                    <td>Wildcamping verboten. "Bivouac" (Zeltaufbau nur von Sonnenuntergang bis -aufgang) ist jedoch in vielen Naturparks abseits von Straßen erlaubt.</td>
+                                </tr>
+            <tr>
+              <td><b>🇫🇮 Finnland</b></td>
+              <td><span class="camper-status-badge geeignet">100% Mautfrei</span></td>
+              <td><span class="camper-status-badge geeignet">100% Mautfrei</span></td>
+              <td>Finnlands gesamtes Straßennetz ist mautfrei für alle Fahrzeugklassen. Keine Vignetten oder Transponder erforderlich.</td>
+            </tr>
+            <tr>
+              <td><b>🇫🇷 Frankreich</b></td>
+              <td><span class="camper-status-badge eingeschraenkt">Klasse 2 (Höhe &lt; 3m &amp; &le; 3,5t)</span></td>
+              <td><span class="camper-status-badge nicht_geeignet">Klasse 3 oder 4 (Lkw-Tarife)</span></td>
+              <td>Streckenmaut (Tépacap / Bip&amp;Go-Badge). Wohnmobile mit Gesamthöhe ab 3,00 m oder über 3,5 t zGG rutschen in Klasse 3 (deutlich teurer). Umweltplakette *Crit'Air* für Umweltzonen Pflicht!</td>
+            </tr>
+            <tr>
+              <td><b>🇮🇹 Italien / Südtirol</b></td>
+              <td><span class="camper-status-badge eingeschraenkt">Klasse A (Höhe Vorderachse &le; 1,30 m)</span></td>
+              <td><span class="camper-status-badge eingeschraenkt">Klasse B / 3-Achser (nach Achsen)</span></td>
+              <td>Streckenabhängige Autobahnmaut: Ticket bei Auffahrt ziehen, bei Abfahrt bar, per Karte oder Telepass zahlen. Die meisten Alkoven- und teilintegrierten Wohnmobile fallen durch die Vorderachshöhe in <b>Klasse B</b> (geringfügig teurer).</td>
+            </tr>
+            <tr>
+              <td><b>🇭🇷 Kroatien</b></td>
+              <td><span class="camper-status-badge eingeschraenkt">Kategorie II (Höhe &ge; 1,90 m)</span></td>
+              <td><span class="camper-status-badge nicht_geeignet">Kategorie III (2–3 Achsen &gt; 3,5t)</span></td>
+              <td>Streckenmaut an Mautstationen bar, mit Karte oder ENC-Transponder. Wohnmobile fallen meist mindestens in Kategorie II.</td>
+            </tr>
+            <tr>
+              <td><b>🇳🇴 Norwegen</b></td>
+              <td><span class="camper-status-badge eingeschraenkt">AutoPASS / E-Toll (Pkw-Tarif)</span></td>
+              <td><span class="camper-status-badge geeignet">AutoPASS mit Chip = M1 Pkw-Tarif!</span></td>
+              <td><b>Großer Vorteil für Camper:</b> Auch Wohnmobile über 3,5 t zGG (Klasse M1) zahlen mit registriertem <b>AutoPASS-Tag / SkyttelPASS</b> den günstigen Pkw-Tarif! Ohne Tag gilt der teure Lkw-Tarif. *Ferjekort* spart 50% auf Inlandsfähren.</td>
+            </tr>
+                                <tr>
+                                    <td><b>🇵🇱 Polen</b></td>
+                                    <td><span class="status-partial"><i class="fas fa-exclamation-triangle"></i></span></td>
+                                    <td>Offiziell verboten, meist toleriert (oder "Zanocuj w lesie").</td>
+                                </tr>
+            <tr>
+              <td><b>🇦🇹 Österreich</b></td>
+              <td><span class="camper-status-badge geeignet">Vignette (1-Tages-, 10-Tages-, 2-Monats- oder Jahresvignette)</span></td>
+              <td><span class="camper-status-badge nicht_geeignet">GO-Box Pflicht (Streckenmaut)</span></td>
+              <td>Über 3,5 t gilt die <b>GO-Box</b> mit kilometerabhängiger Abrechnung (deutlich teurer!). <b>Sondermauten für alle:</b> Brenner (A13), Tauern (A10), Pyhrn (A9), Arlbergtunnel &amp; Großglockner sind vignettenunabhängig mautpflichtig.</td>
+            </tr>
+            <tr>
+              <td><b>🇵🇹 Portugal</b></td>
+              <td><span class="camper-status-badge eingeschraenkt">Classe 2 (Vorderachse &ge; 1,10 m)</span></td>
+              <td><span class="camper-status-badge nicht_geeignet">Classe 3 / 4 (nach Achsen)</span></td>
+              <td>Viele Autobahnen haben reine elektronische Maut (<b>SCUT</b> ohne Schranken). Ausländische Camper registrieren sich vorab via *EasyToll* (Kennzeichen an Kreditkarte gekoppelt) oder mieten einen Via-Verde-Transponder.</td>
+            </tr>
+            <tr>
+              <td><b>🏴󠁧󠁢󠁳󠁣󠁴󠁿 Schottland &amp; UK</b></td>
+              <td><span class="camper-status-badge geeignet">100% Mautfrei</span></td>
+              <td><span class="camper-status-badge geeignet">100% Mautfrei (Highlands)</span></td>
+              <td>In Schottland und Nordirland sind sämtliche Straßen und Autobahnen mautfrei. Lediglich in England wenige Sondermauten (Dartford Crossing, M6 Toll).</td>
+            </tr>
+            <tr>
+              <td><b>🇨🇭 Schweiz</b></td>
+              <td><span class="camper-status-badge geeignet">Autobahnvignette (40 CHF)</span></td>
+              <td><span class="camper-status-badge eingeschraenkt">Schwerverkehrsabgabe (PSVA)</span></td>
+              <td>Bis 3,5 t: Klebevignette oder E-Vignette (40 CHF). Über 3,5 t: <b>Pauschale Schwerverkehrsabgabe (PSVA)</b> auf ALLEN Straßen (auch Kantonsstraßen). Kann bequem per offizieller Schweizer <b>„Via-App“</b> tageweise bezahlt werden!</td>
+            </tr>
+            <tr>
+              <td><b>🇸🇮 Slowenien</b></td>
+              <td><span class="camper-status-badge geeignet">E-Vignette (Klasse 2A / 2B)</span></td>
+              <td><span class="camper-status-badge nicht_geeignet">DarsGo Pflicht (Streckenmaut)</span></td>
+              <td>Bis 3,5 t: E-Vignette online vorab kaufen. Wohnmobile gelten unabhängig von der Höhe an der Vorderachse als <b>Klasse 2A</b> (günstiger Tarif), sofern sie als Wohnmobil im Fahrzeugschein eingetragen sind. Über 3,5 t: DarsGo-Transponderbox obligatorisch. Karawankentunnel separat mautpflichtig.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 3: Bergfahrt & Sicherheit -->
+  <div id="camperTabFahrsicherheit" class="camper-tab-pane" style="display:none">
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.6rem;margin-bottom:1.5rem">
+      <h3 style="margin-top:0">🛡️ Bergfahr-Technik &amp; Sicherheit mit dem Wohnmobil</h3>
+      <p style="font-size:.9rem;color:var(--text-muted);line-height:1.6">
+        Ein 3,5-Tonnen-Wohnmobil verhält sich bei Passfahrten völlig anders als ein Motorrad oder Pkw. Mit diesen 4 goldenen Regeln meisterst du jeden Alpenpass sicher:
+      </p>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.2rem;margin:1.2rem 0">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1.2rem">
+          <h4 style="margin:0 0 .5rem;color:#ef4444">1. Bremsfading verhindern (Motorbremse!)</h4>
+          <p style="margin:0;font-size:.85rem;color:var(--text-muted);line-height:1.6">
+            <b>Die wichtigste Bergab-Regel:</b> Schalte bergab in den 2. oder 3. Gang! Lass den Motor hochdrehen (3.000–3.500 U/min), um die Bremswirkung des Motors zu nutzen. Bremse nur <b>kurz und kräftig</b>, dann die Bremse sofort wieder lösen. Wer die Bremse dauerhaft schleifen lässt, riskiert kochende Bremsflüssigkeit und totalen Bremsausfall!
+          </p>
+        </div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1.2rem">
+          <h4 style="margin:0 0 .5rem;color:var(--accent)">2. Vorfahrtsregeln am Berg</h4>
+          <p style="margin:0;font-size:.85rem;color:var(--text-muted);line-height:1.6">
+            In den Alpen gilt grundsätzlich: <b>Das bergauffahrende Fahrzeug hat Vorrang.</b> Aber Achtung vor der Praxisregel: Das leichtere oder wendigere Fahrzeug weicht aus. Postbusse und Linienbusse in der Schweiz und Österreich haben <b>immer</b> Vorrang (auf das Dreiklanghorn achten!).
+          </p>
+        </div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1.2rem">
+          <h4 style="margin:0 0 .5rem;color:var(--green)">3. Hecküberhang &amp; Aufsetzgefahr</h4>
+          <p style="margin:0;font-size:.85rem;color:var(--text-muted);line-height:1.6">
+            Bei scharfen Kehren schert das Heck eines langen Wohnmobils bis zu <b>60–80 cm</b> zur Kurvenaußenseite aus! Vorsicht an Felswänden und Leitplanken. Bei stark überhöhten Kehren oder steilen Einfahrten können Heckschürze oder Anhängerkupplung aufsetzen (diagonal anfahren!).
+          </p>
+        </div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1.2rem">
+          <h4 style="margin:0 0 .5rem;color:var(--blue)">4. Ver- und Entsorgungs-Etikette</h4>
+          <p style="margin:0;font-size:.85rem;color:var(--text-muted);line-height:1.6">
+            Grauwasser und Toilettenkassette gehören <b>ausschließlich in offizielle Entsorgungsstationen</b>! Niemals in Straßengullis oder die Natur ablassen. In der Schweiz und Österreich drohen dafür empfindliche Umweltstrafen (bis zu mehreren tausend Euro).
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 4: Interaktive Camper-Packliste -->
+  <div id="camperTabCheckliste" class="camper-tab-pane" style="display:none">
+    <div id="camperChecklistContent"></div>
+  </div>
+
+  <!-- Tab 5: Plätze & Buchung -->
+  <div id="camperTabPlaetze" class="camper-tab-pane" style="display:none">
+    <div class="filterbar">
+      <select id="accTypeFilter" onchange="renderAccommodations()" aria-label="Unterkunftstyp">
+        <option value="alle">Alle Typen</option>
+        <option value="Campingplatz">Campingplatz</option>
+        <option value="Stellplatz">Stellplatz</option>
+        <option value="Hotel">Hotel</option>
+        <option value="Weingut">Weingut/Bauernhof</option>
+      </select>
+      <select id="accCountryFilter" onchange="renderAccommodations()" aria-label="Unterkunftsland">
+        <option value="alle">Alle Länder</option>
+      </select>
+      <select id="accRouteFilter" onchange="renderAccommodations()" aria-label="Route">
+        <option value="alle">Alle Routen</option>
+      </select>
+    </div>
+    <div class="accomm-grid" id="accommGrid"></div>
+  </div>
+
+  <!-- Tab 6: Wildcamping & Freistehen -->
+  <div id="camperTabWildcamping" class="camper-tab-pane" style="display:none">
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.4rem;margin-bottom:1rem">
+      <h3 style="margin-top:0">🏕️ Wildcamping &amp; Freistehen in Europa: Wo ist es erlaubt, wo drohen Bußgelder?</h3>
+      <p style="font-size:.88rem;color:var(--text-muted);line-height:1.6">
+        Der rechtliche Unterschied zwischen <b>Zelt (Biwak)</b> und <b>motorisiertem Wohnmobil</b> ist gravierend: Während Wanderer und Radfahrer in Skandinavien vom Jedermannsrecht profitieren, gilt dies für motorisierte Fahrzeuge fast nie. Auch das deutsche Recht auf „Wiederherstellung der Fahrtüchtigkeit“ (§ 12 StVO) wird in Nachbarländern wie Österreich und Kroatien nicht anerkannt.
+      </p>
+
+      <div class="legal-matrix-wrap">
+        <table class="legal-matrix-table">
+          <thead>
+            <tr>
+              <th>Land</th>
+              <th>Zelt / Biker</th>
+              <th>Wohnmobil / Camper</th>
+              <th>Wichtige Gesetze &amp; Strafen</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>🇩🇪 Deutschland</b></td>
+              <td><span class="camper-status-badge nicht_geeignet">Im Wald verboten</span></td>
+              <td><span class="camper-status-badge geeignet">1 Nacht zur Fahrtüchtigkeit (§ 12 StVO)</span></td>
+              <td>Einmaliges Übernachten (max. 10 h) auf öffentlichen Parkplätzen zum Wiedererlangen der Fahrtüchtigkeit ist legal – <b>ohne Campingverhalten</b> (keine Markise, keine Stühle draußen).</td>
+            </tr>
+                                <tr>
+                                    <td><b>🇫🇷 Frankreich</b></td>
+                                    <td>Mautpflicht (Péage) auf den meisten Autobahnen. Wohnmobile >3m Höhe oder >3,5t zahlen teurere Klasse 3 oder 4.</td>
+                                </tr>
+                                <tr>
+                                    <td><b>🇫🇷 Frankreich</b></td>
+                                    <td><span class="status-partial"><i class="fas fa-exclamation-triangle"></i></span></td>
+                                    <td>Wildcamping verboten. "Bivouac" (Zeltaufbau nur von Sonnenuntergang bis -aufgang) ist jedoch in vielen Naturparks abseits von Straßen erlaubt.</td>
+                                </tr>
+            <tr>
+              <td><b>🇫🇮 Finnland</b></td>
+              <td><span class="camper-status-badge geeignet">Legal (Jokamiehenoikeus)</span></td>
+              <td><span class="camper-status-badge geeignet">Freistehen an Parkplätzen toleriert</span></td>
+              <td>Jedermannsrecht erlaubt Zelten fast überall in freier Natur. Mit dem Campervan ist das Übernachten auf Rastplätzen und am Straßenrand für 1–2 Nächte gestattet, sofern kein Privatgrund oder Naturschutzgebiet.</td>
+            </tr>
+            <tr>
+              <td><b>🇫🇷 Frankreich</b></td>
+              <td><span class="camper-status-badge geeignet">Biwak 19–9 Uhr oft erlaubt</span></td>
+              <td><span class="camper-status-badge geeignet">Parken &amp; Schlafen erlaubt</span></td>
+              <td>Schlafen im Fahrzeug wie im PKW erlaubt, wenn kein Campingverhalten vorliegt. Achtung: Viele Küsten- und Touristenorte haben Höhenschranken (1,90–2,10 m).</td>
+            </tr>
+            <tr>
+              <td><b>🇭🇷 Kroatien</b></td>
+              <td><span class="camper-status-badge nicht_geeignet">STRIKT VERBOTEN</span></td>
+              <td><span class="camper-status-badge nicht_geeignet">STRIKT VERBOTEN (Null-Toleranz)</span></td>
+              <td>Wildcamping jeglicher Art ist gesetzlich verboten. Auch Schlafen auf Parkplätzen zur Fahrtüchtigkeit wird bestraft. Nur offizielle Autokamps. Strafen: <b>400 € bis 1.000 €</b>.</td>
+            </tr>
+            <tr>
+              <td><b>🇮🇹 Italien / Südtirol</b></td>
+              <td><span class="camper-status-badge nicht_geeignet">Regional verboten</span></td>
+              <td><span class="camper-status-badge eingeschraenkt">Sosta Libera (kein Campingverhalten)</span></td>
+              <td>Reines Parken und Übernachten im Fahrzeug (*Sosta*) ist laut Art. 185 Codice della Strada dort erlaubt, wo Parken generell gestattet ist – solange keine Stühle/Markisen genutzt werden. Südtirol und Naturschutzgebiete verbieten Freistehen streng per Lokalverordnung.</td>
+            </tr>
+            <tr>
+              <td><b>🇳🇴 Norwegen &amp; 🇸🇪 Schweden</b></td>
+              <td><span class="camper-status-badge geeignet">Legal (Jedermannsrett)</span></td>
+              <td><span class="camper-status-badge eingeschraenkt">Rastplätze &amp; Parkplätze (24–48h)</span></td>
+              <td>Jedermannsrecht gilt primär für Unmotorisierte. Fahren abseits befestigter Straßen ist strikt verboten. Parken/Übernachten auf öffentlichen Rast- und Parkplätzen am Fjordrand erlaubt, wenn kein Verbotsschild besteht.</td>
+            </tr>
+            <tr>
+              <td><b>🇦🇹 Österreich</b></td>
+              <td><span class="camper-status-badge nicht_geeignet">Strikt verboten</span></td>
+              <td><span class="camper-status-badge nicht_geeignet">Weitgehend verboten</span></td>
+              <td>Besonders Tirol, Salzburg und Kärnten kontrollieren rigoros. In Tirol drohen Bußgelder bis zu <b>10.000 €</b>! "Wiederherstellen der Fahrtüchtigkeit" wird abseits von Autobahnraststätten nicht anerkannt.</td>
+            </tr>
+            <tr>
+              <td><b>🇵🇹 Portugal</b></td>
+              <td><span class="camper-status-badge nicht_geeignet">Verboten</span></td>
+              <td><span class="camper-status-badge eingeschraenkt">Max. 48h in einer Gemeinde (außer Küste)</span></td>
+              <td>Freistehen für WoMos bis zu 48h pro Gemeinde gestattet. In Naturschutzgebieten und der 500m-Küstenzone (Costa Vicentina) gilt striktes Verbot (GNR kontrolliert nachts mit Scannern).</td>
+            </tr>
+            <tr>
+              <td><b>🏴󠁧󠁢󠁳󠁣󠁴󠁿 Schottland &amp; UK</b></td>
+              <td><span class="camper-status-badge geeignet">Legal für Zelte (SOAC)</span></td>
+              <td><span class="camper-status-badge geeignet">Toleriert an Passing Places / Parkbuchten</span></td>
+              <td>Der *Scottish Outdoor Access Code* gilt für Zelte. Für Campervans gibt es in den Highlands viele geduldete Übernachtungsbuchten und offizielle Highland-Council-Aires. Keinesfalls Passing Places auf Single-Track-Roads blockieren!</td>
+            </tr>
+            <tr>
+              <td><b>🇨🇭 Schweiz</b></td>
+              <td><span class="camper-status-badge geeignet">Über Baumgrenze toleriert</span></td>
+              <td><span class="camper-status-badge eingeschraenkt">Kommunal geregelt (oft Schilder)</span></td>
+              <td>Notbiwak im Zelt oberhalb der Waldgrenze legal (außer Nationalpark). Auf Pässen (Furka, Grimsel) ist freies Stehen mit Campern fast überall verboten (Bussen bis 200 CHF).</td>
+            </tr>
+            <tr>
+              <td><b>🇸🇮 Slowenien</b></td>
+              <td><span class="camper-status-badge nicht_geeignet">STRIKT VERBOTEN</span></td>
+              <td><span class="camper-status-badge nicht_geeignet">STRIKT VERBOTEN im Nationalpark</span></td>
+              <td>Freistehen und Wildcampen ist in ganz Slowenien verboten. Im Triglav-Nationalpark und an der Soča wird extrem streng kontrolliert (Strafen ab 100 bis 1.000 €). Zahlreiche günstige Natur-Campingplätze nutzen!</td>
+            </tr>
+            <tr>
+              <td><b>🇪🇸 Spanien</b></td>
+              <td><span class="camper-status-badge nicht_geeignet">Generell verboten</span></td>
+              <td><span class="camper-status-badge geeignet">DGT 08/V-74 (Parken vs. Campen)</span></td>
+              <td>Im Fahrzeug schlafen ist legal, wenn das Fahrzeug nicht über die Parkfläche hinausragt (keine Keile, keine Ausstellfenster). <b>Achtung Küste:</b> 500m-Küstenzone (*Ley de Costas*) strikt verboten!</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 7: Alpenpässe mit dem Wohnmobil -->
+  <div id="camperTabPaesse" class="camper-tab-pane" style="display:none">
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.4rem;margin-bottom:1rem">
+      <h3 style="margin-top:0">🏔️ Alpenpässe mit dem Wohnmobil: Worauf Fahrer achten müssen</h3>
+      <p style="font-size:.88rem;color:var(--text-muted);line-height:1.6">
+        Die Alpen bieten atemberaubende Passstraßen – doch für schwere oder lange Wohnmobile sind manche Pässe lebensgefährlich oder gesetzlich gesperrt. Hier sind die wichtigsten Regeln:
+      </p>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;margin:1rem 0">
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:1rem">
+          <h4 style="margin:0 0 .4rem;color:#ef4444">🚫 Stilfser Joch (Stelvio, 2.758 m)</h4>
+          <p style="margin:0;font-size:.82rem;color:var(--text-muted);line-height:1.5">
+            <b>Ostrampe:</b> Fahrverbot für Fzg. > 10,50 m Gesamtlänge. 48 Kehren sind extrem eng mit starker Kurvenüberhöhung. Radstände > 3,80 m setzen auf oder müssen im Gegenverkehr zurücksetzen. <b>Westrampe (Bormio):</b> 3,30 m Höhenlimit wegen unbeleuchteter Felsgalerien. Wohnwagen verboten. Besser über den <b>Reschenpass</b> umfahren.
+          </p>
+        </div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:1rem">
+          <h4 style="margin:0 0 .4rem;color:var(--accent)">⚠️ Timmelsjoch (2.509 m)</h4>
+          <p style="margin:0;font-size:.82rem;color:var(--text-muted);line-height:1.5">
+            Auf der italienischen Südseite gilt ein striktes <b>Gewichtslimit von max. 8,0 Tonnen</b> (Höhe max. 4,00 m, Breite max. 2,55 m). Wohnwagen-Gespanne sind verboten! Nachtfahrverbot von 20:00 bis 07:00 Uhr. Enge Tunnel und 14% Gefälle.
+          </p>
+        </div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:1rem">
+          <h4 style="margin:0 0 .4rem;color:#10b981">🚐 Großglockner Hochalpenstraße (2.504 m)</h4>
+          <p style="margin:0;font-size:.82rem;color:var(--text-muted);line-height:1.5">
+            Hervorragend und breit (> 6 m) ausgebaut für WoMos bis 18 t. <b>Achtung:</b> Edelweißspitze (Kopfsteinpflaster, 14%) für Fzg. > 3,5 t verboten. <b>Gefahr bergab:</b> Bremsfading! Unbedingt im 2. oder 3. Gang mit Motorbremse rollen und nur stoßweise bremsen.
+          </p>
+        </div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:1rem">
+          <h4 style="margin:0 0 .4rem;color:#10b981">🚐 Col du Galibier (2.642 m / Tunnel 2.556 m)</h4>
+          <p style="margin:0;font-size:.82rem;color:var(--text-muted);line-height:1.5">
+            <b>Mythos 2,05 m aufgeklärt:</b> Der sanierte Scheiteltunnel hat <b>4,10 m Durchfahrtshöhe</b>, 3,20 m Breite und 19 t Traglast (Ampel-Wechselverkehr). Wohnmobile fahren durch den Tunnel; die Passhöhe über dem Tunnel ist für Großfahrzeuge gesperrt.
+          </p>
+        </div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:1rem">
+          <h4 style="margin:0 0 .4rem;color:#ef4444">🚫 Splügenpass (2.115 m)</h4>
+          <p style="margin:0;font-size:.82rem;color:var(--text-muted);line-height:1.5">
+            Striktes <b>Breitenlimit von 2,30 m</b> (inkl. Außenspiegel!). Wohnwagen und Anhänger verboten. 10 einspurige Kehrentunnel mit Felsüberhängen im Fels. Nur für schmale Kastenwagen; größere WoMos müssen den San-Bernardino-Tunnel nutzen.
+          </p>
+        </div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:1rem">
+          <h4 style="margin:0 0 .4rem;color:#10b981">🚐 Gotthardpass (2.106 m)</h4>
+          <p style="margin:0;font-size:.82rem;color:var(--text-muted);line-height:1.5">
+            Die <b>Neue Passstraße (Hauptstraße 2)</b> ist voll asphaltiert und problemlos für alle Camper befahrbar – perfekt als staufreie Alternative zum Gotthardtunnel. Die historische <b>Tremola</b> (Kopfsteinpflaster) ist für Camper nicht ratsam.
+          </p>
+        </div>
+      </div>
+
+      <div style="text-align:center;margin-top:1.2rem">
+        <button class="btn btn-primary" onclick="showView('paesse');document.getElementById('passCamperFilter').value='geeignet';renderPasses();">🏔️ Alle Pässe nach WoMo-Tauglichkeit filtern</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 8: Die besten Apps -->
+  <div id="camperTabApps" class="camper-tab-pane" style="display:none">
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.4rem;margin-bottom:1rem">
+      <h3 style="margin-top:0">📱 Die besten Apps für Camper &amp; Biker</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;margin:1rem 0">
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:1rem">
+          <h4 style="margin:0 0 .4rem;color:var(--accent)">🅿️ Park4Night</h4>
+          <p style="margin:0;font-size:.84rem;color:var(--text-muted);line-height:1.5">
+            Die weltgrößte Community-App für Stellplätze, Naturplätze, Campingplätze und V/E-Stationen. <b>Tipp:</b> In Ländern mit Wildcamping-Verbot den Filter auf „Offizielle Stellplätze“ (grünes Icon) setzen, um Strafen zu vermeiden.
+          </p>
+        </div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:1rem">
+          <h4 style="margin:0 0 .4rem;color:var(--green)">⛺ Camping.info</h4>
+          <p style="margin:0;font-size:.84rem;color:var(--text-muted);line-height:1.5">
+            Über 23.000 redaktionell geprüfte Campingplätze in 44 europäischen Ländern. Mit echten Gäste-Bewertungen, Stromstärken (Ampere), Hunderegeln und Live-Buchungssystem.
+          </p>
+        </div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:1rem">
+          <h4 style="margin:0 0 .4rem;color:var(--blue)">🛣️ ViaMichelin &amp; ASFINAG</h4>
+          <p style="margin:0;font-size:.84rem;color:var(--text-muted);line-height:1.5">
+            Ideal zur exakten Berechnung von Mautkosten in Frankreich, Italien und Spanien sowie zur Buchung digitaler Streckenmauten (Brenner, Tauern) in Österreich ohne Wartezeit an der Mautstelle.
+          </p>
+        </div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:1rem">
+          <h4 style="margin:0 0 .4rem;color:var(--accent)">🇨🇭 Via-App (Schweizer Zoll)</h4>
+          <p style="margin:0;font-size:.84rem;color:var(--text-muted);line-height:1.5">
+            Die offizielle App des Schweizer Bundesamts für Zoll (BAZG) für Wohnmobile über 3,5 Tonnen zur bargeldlosen und sofortigen Entrichtung der Pauschalen Schwerverkehrsabgabe (PSVA).
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ VORBEREITUNG ============ -->
+<section id="view-vorbereitung" class="view">
+  <h2>📋 Reise-Vorbereitung — Das große Kompendium</h2>
+  <div class="prep-tabs" id="prepTabs">
+    <button class="active" onclick="showPrepTab('dokumente', this)">📄 Dokumente</button>
+    <button onclick="showPrepTab('versicherung', this)">🛡️ Versicherung</button>
+    <button onclick="showPrepTab('timeline', this)">⏱️ Zeitplan</button>
+    <button onclick="showPrepTab('bike', this)">🔧 Bike & Ausrüstung</button>
+    <button onclick="showPrepTab('grenze', this)">🛂 Grenz-Checkliste</button>
+  </div>
+  <div id="prepContent"></div>
+</section>
+
+<!-- ============ PROBLEME ============ -->
+<section id="view-probleme" class="view">
+  <h2>⚠️ Lektionen & Pannen aus echten Berichten</h2>
+  <p class="hint">Echte Pannen und Grenzprobleme anderer Fahrer — und die Lösungen dazu. Kategorisiert nach Mechanik, Zöllen, Wetter und Logistik.</p>
+  <div class="filterbar" id="problemFilter"></div>
+  <div id="problemCount" class="hint" style="margin-bottom:.8rem"></div>
+  <div id="problemGrid"></div>
+</section>
+
+<!-- ============ QUELLEN ============ -->
+<section id="view-quellen" class="view">
+  <h2>📚 Quellen & weiterführende Archive</h2>
+  <p class="hint">Diese Plattform aggregiert Wissen aus bewährten Reiseberichten und Archiven.</p>
+  <div id="sourceGrid" class="source-grid"></div>
+</section>
+
+<!-- ============ BIKER-TOOLS ============ -->
+<section id="view-tools" class="view">
+  <h2>🧰 Biker-Tools &amp; Reise-Kalkulatoren</h2>
+  <p class="hint">Interaktive Werkzeuge für deine Tourenplanung: Dynamischer Motorrad-Packlisten-Generator und Echtzeit-Sprit- &amp; Reisekosten-Rechner.</p>
+
+  <div class="tools-grid">
+    <!-- Tool 1: Packlisten-Generator -->
+    <div class="tool-card">
+      <h3>🎒 Motorrad-Packlisten-Generator</h3>
+      <p style="font-size:.84rem;color:var(--text-muted)">Stelle deine individuelle Packliste nach Tourprofil zusammen. Gesetzte Haken werden automatisch im Browser gespeichert.</p>
+
+      <div style="display:flex;gap:.8rem;margin-bottom:1rem;flex-wrap:wrap">
+        <div class="tool-input-group" style="flex:1;min-width:140px">
+          <label for="packTripType">Übernachtung</label>
+          <select id="packTripType" onchange="renderPackingList()">
+            <option value="camping">🏕️ Zelt / Camping / Wildcamp</option>
+            <option value="hotel">🏨 Hotel / B&amp;B / Pension</option>
+          </select>
+        </div>
+        <div class="tool-input-group" style="flex:1;min-width:140px">
+          <label for="packClimate">Jahreszeit / Region</label>
+          <select id="packClimate" onchange="renderPackingList()">
+            <option value="alps">🏔️ Hochalpen / Wechselhaft / Kälte</option>
+            <option value="summer">☀️ Hochsommer / Mittelmeer</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="packingListContainer"></div>
+      
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1rem;flex-wrap:wrap;gap:.5rem">
+        <button class="btn" onclick="resetPackingList()" style="font-size:.78rem">↺ Liste zurücksetzen</button>
+        <span id="packProgressLbl" style="font-size:.8rem;color:var(--muted)"></span>
+      </div>
+    </div>
+
+    <!-- Tool 2: Sprit- & Reisekosten-Rechner -->
+    <div class="tool-card">
+      <h3>⛽ Sprit- &amp; Reisekosten-Rechner</h3>
+      <p style="font-size:.84rem;color:var(--text-muted)">Kalkuliere schnell und präzise die Gesamtkosten deiner Tour inklusive Sprit, Maut, Übernachtung und Verpflegung.</p>
+
+      <div class="tool-input-group">
+        <label for="calcKm">Geplante Gesamtdistanz (km)</label>
+        <input type="number" id="calcKm" value="2500" min="50" step="50" oninput="calculateTripCosts()">
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem">
+        <div class="tool-input-group">
+          <label for="calcConsumption">Verbrauch (l / 100 km)</label>
+          <input type="number" id="calcConsumption" value="4.8" min="2.5" max="12" step="0.1" oninput="calculateTripCosts()">
+        </div>
+        <div class="tool-input-group">
+          <label for="calcFuelPrice">Spritpreis (€ / Liter)</label>
+          <input type="number" id="calcFuelPrice" value="1.85" min="1.0" max="3.0" step="0.05" oninput="calculateTripCosts()">
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem">
+        <div class="tool-input-group">
+          <label for="calcDays">Reisedauer (Tage)</label>
+          <input type="number" id="calcDays" value="10" min="1" max="60" oninput="calculateTripCosts()">
+        </div>
+        <div class="tool-input-group">
+          <label for="calcAccomCost">Unterkunft (€ / Nacht)</label>
+          <input type="number" id="calcAccomCost" value="35" min="0" step="5" oninput="calculateTripCosts()">
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem">
+        <div class="tool-input-group">
+          <label for="calcToll">Maut, Vignetten, Pässe (€)</label>
+          <input type="number" id="calcToll" value="65" min="0" step="5" oninput="calculateTripCosts()">
+        </div>
+        <div class="tool-input-group">
+          <label for="calcFood">Essen &amp; Trinken (€ / Tag)</label>
+          <input type="number" id="calcFood" value="30" min="5" step="5" oninput="calculateTripCosts()">
+        </div>
+      </div>
+
+      <div class="calc-result-box" id="calcResultBox">
+        <div class="calc-result-item"><span>Benzinkosten gesamt:</span><strong id="resFuel">222,00 €</strong></div>
+        <div class="calc-result-item"><span>Übernachtungskosten:</span><strong id="resAccom">350,00 €</strong></div>
+        <div class="calc-result-item"><span>Maut &amp; Vignetten:</span><strong id="resToll">65,00 €</strong></div>
+        <div class="calc-result-item"><span>Verpflegung gesamt:</span><strong id="resFood">300,00 €</strong></div>
+        <div class="calc-result-item"><span>Kosten pro Fahrtag:</span><strong id="resDay" style="color:var(--text)">93,70 € / Tag</strong></div>
+        <div class="calc-result-item"><span>GESAMTBUDGET:</span><span id="resTotal">937,00 €</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- Universal Modal Dialog -->
+<div id="modal" class="modal hidden" onclick="if(event.target===this) closeModal()" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal-content">
+    <button class="close-btn" onclick="closeModal()" aria-label="Schließen">✕</button>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="footer-logo">
+        <img src="assets/logo.jpg" alt="Rydo Logo" class="footer-logo-img">
+        <span>Rydo</span>
+      </div>
+      <p class="footer-tagline">Das weltweite, werbefreie Abenteuer-Portal für Gebirgspässe, Rundreisen &amp; GPX-Tracks. Von Reisenden für Reisende.</p>
+      <div class="footer-badges">
+        <span class="badge green">100% Werbefrei</span>
+        <span class="badge blue">100% Offline-App</span>
+        <span class="badge yellow">Open-Data &amp; OSM</span>
+      </div>
+    </div>
+    
+    <div class="footer-nav-col">
+      <h4>Entdecken</h4>
+      <ul>
+        <li><a href="javascript:void(0)" onclick="showView('karte')">🗺️ Interaktive Karte</a></li>
+        <li><a href="javascript:void(0)" onclick="showView('paesse')">🏔️ 315 Gebirgspässe</a></li>
+        <li><a href="javascript:void(0)" onclick="showView('routen')">🛣️ 159 Kuratierte Touren</a></li>
+        <li><a href="javascript:void(0)" onclick="showView('finder')">🧭 360°-Routenfinder</a></li>
+        <li><a href="javascript:void(0)" onclick="showView('kalender')">📅 Saison-Kalender</a></li>
+        <li><a href="javascript:void(0)" onclick="showView('laender')">🌍 Länder &amp; Wildcamping</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-nav-col">
+      <h4>Planen &amp; Wissen</h4>
+      <ul>
+        <li><a href="javascript:void(0)" onclick="showView('meine-reisen')">🗂️ Eigene Reise planen</a></li>
+        <li><a href="javascript:void(0)" onclick="showView('tools')">🧰 Biker-Tools &amp; Packliste</a></li>
+        <li><a href="javascript:void(0)" onclick="showView('wohnmobil')">🚐 Wohnmobil &amp; Camping</a></li>
+        <li><a href="javascript:void(0)" onclick="showView('vorbereitung')">📋 Checklisten &amp; Dokumente</a></li>
+        <li><a href="javascript:void(0)" onclick="showView('probleme')">⚠️ Pannen &amp; Notfälle</a></li>
+        <li><a href="javascript:void(0)" onclick="openPwaInfoModal()">📲 App offline installieren</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-nav-col">
+      <h4>Rechtliches &amp; Kontakt</h4>
+      <ul>
+        <li><a href="javascript:void(0)" onclick="openImpressumModal()">⚖️ Impressum (§ 5 DDG)</a></li>
+        <li><a href="javascript:void(0)" onclick="openDatenschutzModal()">🔒 Datenschutz (DSGVO)</a></li>
+        <li><a href="javascript:void(0)" onclick="openDisclaimerModal()">⚠️ Haftungsausschluss</a></li>
+        <li><a href="javascript:void(0)" onclick="openFeedbackModal()">💬 Feedback &amp; Fehler melden</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <div class="footer-disclaimer-note">
+      ⚠️ <b>Sicherheitshinweis:</b> Passöffnungszeiten, Wetterbedingungen und Maut-/Einreisebestimmungen können sich stündlich ändern. Die Befahrung aller dokumentierten Strecken erfolgt grundsätzlich auf eigene Verantwortung und Gefahr.
+    </div>
+    <div class="footer-bottom-flex">
+      <span>© 2026 Rydo · Alpine Passes &amp; Adventure Routes · Alle Rechte vorbehalten.</span>
+      <div class="footer-legal-links">
+        <a href="javascript:void(0)" onclick="openImpressumModal()">Impressum</a>
+        <span class="dot">·</span>
+        <a href="javascript:void(0)" onclick="openDatenschutzModal()">Datenschutz</a>
+        <span class="dot">·</span>
+        <a href="javascript:void(0)" onclick="openDisclaimerModal()">Haftungsausschluss</a>
+        <span class="dot">·</span>
+        <a href="javascript:void(0)" onclick="openFeedbackModal()">Fehler melden</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="js/data.js"></script>
+<script src="js/routeTracks.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
