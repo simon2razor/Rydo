@@ -1,5 +1,5 @@
 /* ============ Rydo Service Worker ============ */
-const CACHE_NAME = 'rydo-cache-v31';
+const CACHE_NAME = 'rydo-cache-v33';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
